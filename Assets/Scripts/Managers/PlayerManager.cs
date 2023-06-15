@@ -85,4 +85,19 @@ public class PlayerManager : MonoBehaviour
     public int getActor(string playerName) {
         return playerActor[playerName];
     }
+
+    public void changeStatus(string[] playerNames, Dictionary<string, int> statChanges, StatusChangeType changeOrSetType, StatusChangeType absOrPercentType, float seconds) {
+        object[] pkg = new object[] {
+            statChanges,
+            changeOrSetType,
+            absOrPercentType,
+            seconds,
+        };
+        PhotonNetwork.RaiseEvent(
+            (byte) GameEventCodes.PLAYERSTATUSCHANGE,
+            pkg,
+            new RaiseEventOptions { TargetActors = playerNames.Select(name => getActor(name)).ToArray() },
+            new SendOptions { Reliability = true }
+        );
+    }
 }

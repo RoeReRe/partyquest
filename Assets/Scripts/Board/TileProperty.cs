@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class TileProperty : MonoBehaviour
 {
+    public Sprite unexploredSprite;
     private PlayerManager playerManager;
 
     private void Awake() {
@@ -31,5 +32,11 @@ public class TileProperty : MonoBehaviour
             Vector3 interval = diagonal / (totalPlayer - 1);
             return bottomLeft + (playerID * interval);
         }
+    }
+
+    public void exhaustTile() {
+        SpriteRenderer spriteRenderer = GetComponent<SpriteRenderer>();
+        spriteRenderer.sprite = unexploredSprite;
+        spriteRenderer.color = new Color(1f, 1f, 1f, 0.75f);
     }
 }

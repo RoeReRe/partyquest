@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 2603264918400486363}
   - component: {fileID: 6075940951126614051}
   m_Layer: 7
-  m_Name: UnexploredPrefab
+  m_Name: Base TIle
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -74,7 +74,7 @@ SpriteRenderer:
   m_SortingLayerID: 2113261601
   m_SortingLayer: 2
   m_SortingOrder: 0
-  m_Sprite: {fileID: 21300000, guid: 0030f9aa686487c48ac11967c354244f, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 3c3df52a84a64704d9bc728ca842c399, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -97,3 +97,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 842bc3d1bab2dfc4aaea7fd4d48bbe22, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  unexploredSprite: {fileID: 21300000, guid: 3c3df52a84a64704d9bc728ca842c399, type: 3}

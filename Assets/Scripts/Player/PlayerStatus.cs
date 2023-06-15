@@ -8,6 +8,14 @@ using ExitGames.Client.Photon;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using System.Linq;
+
+public enum StatusChangeType : byte {
+    CHANGESTAT,
+    SETSTAT,
+    ABSOLUTE,
+    PERCENTAGE,
+}
 
 public class PlayerStatus : MonoBehaviourPunCallbacks, IOnEventCallback
 {
@@ -74,11 +82,13 @@ public class PlayerStatus : MonoBehaviourPunCallbacks, IOnEventCallback
         // HP Calculation
         maxHealth = StatFunction.statToHP(vitality);
         healthSlider.maxValue = maxHealth;
+        healthSlider.value = health;
         healthText.text = health.ToString() + " / " + maxHealth.ToString();
 
         // MP Calculation
         maxMana = StatFunction.statToMP(mind);
         manaSlider.maxValue = maxMana;
+        manaSlider.value = mana;
         manaText.text = mana.ToString() + " / " + maxMana.ToString();
 
         // Level Calculation
@@ -104,6 +114,30 @@ public class PlayerStatus : MonoBehaviourPunCallbacks, IOnEventCallback
         );
     }
 
+    private int getPropertyValue(string propertyName) {
+        FieldInfo propertyField = this.GetType().GetField(propertyName);
+        return (int) propertyField.GetValue(this);
+    }
+
+    private void setPropertyValue(string propertyName, int value) {
+        FieldInfo propertyField = this.GetType().GetField(propertyName);
+        propertyField.SetValue(this, value);
+    }
+
+    public IEnumerator changeStatus(List<Tuple<string, int>> changeList, float timeSeconds) {
+        
+        foreach (Tuple<string, int> change in changeList) {
+            setPropertyValue(change.Item1, getPropertyValue(change.Item1) + change.Item2);
+        }
+        updateDisplay();
+        if (timeSeconds != 0f) {
+            yield return new WaitForSecondsRealtime(timeSeconds);
+            changeList = changeList.Select(change => new Tuple<string, int>(change.Item1, -change.Item2)).ToList();
+            StartCoroutine(changeStatus(changeList, 0f));
+        }
+        yield return new WaitForEndOfFrame();
+    }
+
     public void OnEvent(EventData photonEvent) { 
         if (photonEvent.Code < 200) {
             GameEventCodes eventCode = (GameEventCodes) photonEvent.Code;
@@ -113,6 +147,9 @@ public class PlayerStatus : MonoBehaviourPunCallbacks, IOnEventCallback
             switch (eventCode) {
                 case GameEventCodes.PLAYERINITSTATS:
                     ReceiveInitStats(eventData);
+                    break;
+                case GameEventCodes.PLAYERSTATUSCHANGE:
+                    ReceiveStatusChange(eventData);
                     break;
             }
         }
@@ -124,5 +161,24 @@ public class PlayerStatus : MonoBehaviourPunCallbacks, IOnEventCallback
 
     public override void OnDisable() {
         PhotonNetwork.RemoveCallbackTarget(this);
+    }
+
+    public void ReceiveStatusChange(object[] eventData) {
+        // [Dictionary<string, int>, CHANGESTAT/SETSTAT, ABSOLUTE/PERCENTAGE, DurationInFloatSeconds]
+        Dictionary<string, int> statChange = (Dictionary<string, int>) eventData[0];
+
+        List<Tuple<string, int>> change = statChange.Keys.ToList()
+            .Select(name => {
+                return StatFunction.calculateChange(
+                    name,
+                    statChange[name],
+                    getPropertyValue(name),
+                    (StatusChangeType) eventData[1],
+                    (StatusChangeType) eventData[2]
+                );
+            })
+            .ToList();
+        
+        StartCoroutine(changeStatus(change, (float) eventData[3]));
     }
 }

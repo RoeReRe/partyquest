@@ -62,12 +62,14 @@ public class Launcher : MonoBehaviourPunCallbacks, IOnEventCallback
     public override void OnJoinedLobby() {
         nameScreen.SetActive(true);
         if (PlayerPrefs.HasKey("playerName")) {
-            nameScreen.GetComponentInChildren<TMP_InputField>().text = PlayerPrefs.GetString("playerName");
+            nameScreen.GetComponentInChildren<InputField>().text = PlayerPrefs.GetString("playerName");
+            // nameScreen.GetComponentInChildren<TMP_InputField>().text = PlayerPrefs.GetString("playerName");
         }
     }
 
     public void ConfirmNickname() {
-        TMP_InputField inputField = nameScreen.GetComponentInChildren<TMP_InputField>();
+        InputField inputField = nameScreen.GetComponentInChildren<InputField>();
+        // TMP_InputField inputField = nameScreen.GetComponentInChildren<TMP_InputField>();
         string name = inputField.text;
 
         if (!string.IsNullOrWhiteSpace(name)) {
@@ -101,7 +103,8 @@ public class Launcher : MonoBehaviourPunCallbacks, IOnEventCallback
     }
 
     public void JoinRoomWithCode() {
-        TMP_InputField inputField = joinRoomScreen.GetComponentInChildren<TMP_InputField>();
+        InputField inputField = joinRoomScreen.GetComponentInChildren<InputField>();
+        // TMP_InputField inputField = joinRoomScreen.GetComponentInChildren<TMP_InputField>();
         string roomCode = inputField.text;
 
         CloseMenus();

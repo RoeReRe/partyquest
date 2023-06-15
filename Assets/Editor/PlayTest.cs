@@ -23,8 +23,8 @@ public class PlayTest : EditorWindow {
         playerID = GUILayout.TextField(playerID);
         GUILayout.Box("Move to");
         tileIndex = GUILayout.TextField(tileIndex);
-        if (GUILayout.Button("Run")) {
-            board.movePlayerTo(playerManager.getName(int.Parse(playerID)) , int.Parse(tileIndex)); 
-        }
+        // if (GUILayout.Button("Run")) {
+        //     board.movePlayerTo(playerManager.getName(int.Parse(playerID)) , int.Parse(tileIndex)); 
+        // }
     }
 }

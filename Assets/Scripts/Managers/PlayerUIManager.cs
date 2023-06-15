@@ -5,12 +5,14 @@ using UnityEngine.UI;
 using Photon.Pun;
 using Photon.Realtime;
 using ExitGames.Client.Photon;
+using System;
 
 public class PlayerUIManager : PlayerBoardStateMachine, IOnEventCallback
 {
     public GameObject playerDisplay;
     public GameObject playerButtons;
     public GameObject loadingScreen;
+    public NotificationHandler playerNotificationScreen;
 
     private void Start() {
         UIState(false);
@@ -57,6 +59,9 @@ public class PlayerUIManager : PlayerBoardStateMachine, IOnEventCallback
                 case GameEventCodes.PLAYERSTARTTURN:
                     ReceiveStartTurn();
                     break;
+                case GameEventCodes.NOTIFYPLAYER:
+                    ReceiveNotification(eventData);
+                    break;
             }
         }
     }
@@ -85,5 +90,23 @@ public class PlayerUIManager : PlayerBoardStateMachine, IOnEventCallback
 
     public void ReceiveStartTurn() {
         ChangeState(new BoardPlayerTurnState(this));
+    }
+
+    public void ReceiveNotification(object[] eventData) {
+        Tuple<string, bool>[] buttonSettings;
+        if (eventData.Length == 4) {
+            buttonSettings = new Tuple<string, bool>[1];
+        } else {
+            buttonSettings = new Tuple<string, bool>[2];
+            buttonSettings[1] = new Tuple<string, bool>((string) eventData[4], (bool) eventData[5]);
+        }
+        
+        buttonSettings[0] = new Tuple<string, bool>((string) eventData[2], (bool) eventData[3]);
+
+        playerNotificationScreen.initNotification(
+            (string) eventData[0],
+            (string) eventData[1],
+            buttonSettings
+        );
     }
 }

@@ -12,7 +12,7 @@ public class TileSpawner : MonoBehaviour
 
     public void startBoard(int size) {
         // Retrieve tile asset
-        tileList = Resources.LoadAll<GameObject>("Tiles");
+        tileList = Resources.LoadAll<GameObject>("Tiles/Variant");
 
         // Generate tile set
         generateTileSet(size);

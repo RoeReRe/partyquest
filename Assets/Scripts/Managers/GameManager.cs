@@ -5,11 +5,15 @@ using Photon.Pun;
 
 public enum GameEventCodes : byte {
     GAMESTART,
-    PLAYERINITSTATS,
-    PLAYERSYNCSTATS,
-    PLAYERSTARTTURN,
-    PLAYERMOVE,
-    PLAYERENDTURN,
+    PLAYERINITSTATS, // To Player
+    PLAYERSYNCSTATS, // To Host
+    PLAYERSTARTTURN, // To Player
+    PLAYERMOVE, // To Host
+    PLAYERENDTURN, // To Host
+    NOTIFYPLAYER, // To Player
+    PLAYERNOTIFLEFT, // To Host
+    PLAYERNOTIFRIGHT, // To Host
+    PLAYERSTATUSCHANGE, // To Player
 }
 
 public class GameManager : MonoBehaviour

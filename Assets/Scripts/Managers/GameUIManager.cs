@@ -10,14 +10,19 @@ using TMPro;
 public class GameUIManager : MonoBehaviourPunCallbacks, IOnEventCallback
 {
     public SessionInfo sessionInfo;
+    private BoardManager boardManager;
     private PlayerManager playerManager;
     public GameObject playerInfoParent;
     public GameObject playerInfoPrefab;
+    public GameObject loadingScreen;
+    public GameObject notificationScreen;
 
     private Dictionary<string, GameObject> playerDisplays = new Dictionary<string, GameObject>();
 
     private void Awake() {
         playerManager = FindObjectOfType<PlayerManager>();
+        boardManager = FindObjectOfType<BoardManager>();
+        loadingScreen.SetActive(true);
     }
 
     public void createPlayer(string playerName) {
@@ -34,6 +39,14 @@ public class GameUIManager : MonoBehaviourPunCallbacks, IOnEventCallback
             .gameObject
             .GetComponent<TMP_Text>()
             .text = playerName;
+    }
+
+    public void setLoadingScreen(bool state) {
+        loadingScreen.SetActive(state);
+    }
+
+    public void closeNotification() {
+        notificationScreen.SetActive(false);
     }
     
     public void OnEvent(EventData photonEvent) { 
@@ -64,10 +77,12 @@ public class GameUIManager : MonoBehaviourPunCallbacks, IOnEventCallback
         Slider mana = player.transform.Find("Mana").gameObject.GetComponentInChildren<Slider>();
         TMP_Text level = player.transform.Find("Level").gameObject.GetComponent<TMP_Text>();
 
-        health.value = (int) eventData[0];
         health.maxValue = (int) eventData[1];
-        mana.value = (int) eventData[2];
+        health.value = (int) eventData[0];
         mana.maxValue = (int) eventData[3];
+        mana.value = (int) eventData[2];
         level.text = "Level: " + ((int) eventData[4]).ToString();
+
+        boardManager.ReceiveGameStart();
     }
 }

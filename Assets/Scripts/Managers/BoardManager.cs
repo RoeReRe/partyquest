@@ -8,6 +8,7 @@ using Photon.Realtime;
 
 public class BoardManager : StateMachine, IOnEventCallback
 {
+    public GameUIManager gameUIManager;
     public PlayerManager playerManager;
     private TileSpawner tileSpawner;
     public int boardSize = 11;
@@ -39,12 +40,12 @@ public class BoardManager : StateMachine, IOnEventCallback
         }
     }
 
-    public void movePlayerTo(PlayerMovement player, int tileIndex) {
-        StartCoroutine(movePlayerToRoutine(player, tileIndex));
+    public IEnumerator movePlayerTo(PlayerMovement player, int tileIndex) {
+        yield return StartCoroutine(movePlayerToRoutine(player, tileIndex));
     }
 
-    public void movePlayerTo(string playerName, int tileIndex) {
-        movePlayerTo(playerManager.getPlayer(playerName).GetComponent<PlayerMovement>(), tileIndex);
+    public IEnumerator movePlayerTo(string playerName, int tileIndex) {
+        yield return StartCoroutine(movePlayerTo(playerManager.getPlayer(playerName).GetComponent<PlayerMovement>(), tileIndex));
     }
 
     IEnumerator movePlayerToRoutine(PlayerMovement player, int tileIndex) {
@@ -96,7 +97,7 @@ public class BoardManager : StateMachine, IOnEventCallback
                     ReceiveGameStart();
                     break;
                 case GameEventCodes.PLAYERMOVE:
-                    ReceivePlayerMove(sender);
+                    StartCoroutine(ReceivePlayerMove(sender));
                     break;
                 case GameEventCodes.PLAYERENDTURN:
                     ReceivePlayerEndTurn();
@@ -115,18 +116,23 @@ public class BoardManager : StateMachine, IOnEventCallback
     
     public void ReceiveGameStart() {
         currentPlayer++;
-        if (currentPlayer >= playerManager.getTotal()) {
+        // GameUI calls this when loading of stats are done
+        if (currentPlayer >= 2 * playerManager.getTotal()) {
             currentPlayer = 0;
+            gameUIManager.setLoadingScreen(false);
             startPlayerTurn(0);
         }
     }
 
-    public void ReceivePlayerMove(string playerName) {
-        int maxIndex = (boardSize * 4) - 4;
+    public IEnumerator ReceivePlayerMove(string playerName) {
         int steps = UnityEngine.Random.Range(0, 12);
+        
+        int maxIndex = (boardSize * 4) - 4;
         int initPos = playerManager.getPlayer(playerName).GetComponent<PlayerMovement>().getPosition();
         int finalPos = (initPos + steps) % maxIndex;
-        movePlayerTo(playerName, finalPos);
+        yield return StartCoroutine(movePlayerTo(playerName, finalPos));
+
+        
     }
     
     public void ReceivePlayerEndTurn() {

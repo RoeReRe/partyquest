@@ -10,6 +10,29 @@ public static class StatFunction
     Dexterity -> Evasion / Spd; Critical rate
     Endurance -> Status Res / Knockback
     */
+
+    public static Tuple<string, int> calculateChange(string name, int change, int currStat,
+        StatusChangeType setOrChangeType, StatusChangeType absOrPercentType) {
+        
+        int stat = Math.Abs(change);
+        int sign = Math.Sign(change);        
+        if (setOrChangeType == StatusChangeType.SETSTAT) {
+            if (absOrPercentType == StatusChangeType.ABSOLUTE) {
+                stat = stat - currStat;
+            } else {
+                stat = (int) Math.Round(
+                    (stat / 100f * currStat) - currStat
+                );
+            }
+        } else {
+            if (absOrPercentType == StatusChangeType.ABSOLUTE) {
+                stat = stat * sign;
+            } else {
+                stat = (int) Math.Round(stat / 100f * currStat) * sign;
+            }
+        }
+        return new Tuple<string, int>(name, stat);
+    }
     
     public static float logisticFunction(int x, float translationx, float asymptote, float power, float translationy) {
         float a = translationx;
