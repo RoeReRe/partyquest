@@ -13,6 +13,7 @@ public class PlayerUIManager : PlayerBoardStateMachine, IOnEventCallback
     public GameObject playerButtons;
     public GameObject loadingScreen;
     public NotificationHandler playerNotificationScreen;
+    public Button endTurnButton;
 
     private void Start() {
         UIState(false);
@@ -38,7 +39,12 @@ public class PlayerUIManager : PlayerBoardStateMachine, IOnEventCallback
         }
     }
 
+    public void EndTurnState(bool state) {
+        endTurnButton.interactable = state;
+    }
+
     public void OnMove() {
+        EndTurnState(false);
         currentState.OnMove();
     }
 
@@ -61,6 +67,9 @@ public class PlayerUIManager : PlayerBoardStateMachine, IOnEventCallback
                     break;
                 case GameEventCodes.NOTIFYPLAYER:
                     ReceiveNotification(eventData);
+                    break;
+                case GameEventCodes.PLAYERCANENDTURN:
+                    ReceiveCanEndTurn();
                     break;
             }
         }
@@ -93,6 +102,7 @@ public class PlayerUIManager : PlayerBoardStateMachine, IOnEventCallback
     }
 
     public void ReceiveNotification(object[] eventData) {
+        // [Title, body, leftText, leftState, rightText, rightState]
         Tuple<string, bool>[] buttonSettings;
         if (eventData.Length == 4) {
             buttonSettings = new Tuple<string, bool>[1];
@@ -108,5 +118,9 @@ public class PlayerUIManager : PlayerBoardStateMachine, IOnEventCallback
             (string) eventData[1],
             buttonSettings
         );
+    }
+
+    public void ReceiveCanEndTurn() {
+        EndTurnState(true);
     }
 }

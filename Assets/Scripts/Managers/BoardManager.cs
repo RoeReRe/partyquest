@@ -13,6 +13,9 @@ public class BoardManager : StateMachine, IOnEventCallback
     private TileSpawner tileSpawner;
     public int boardSize = 11;
     public int currentPlayer = 0;
+
+    private bool playerNotifLeft;
+    private bool playerNotifRight;
     
     private void Awake() {
         TileSpawner tileSpawner = FindObjectOfType<TileSpawner>();
@@ -71,6 +74,7 @@ public class BoardManager : StateMachine, IOnEventCallback
     }
 
     public void startPlayerTurn(int playerID) {
+        gameUIManager.logInfo(String.Format("[Board] {0}'s turn to act.", playerManager.getName(playerID)));
         int actorID = playerManager.getActor(playerManager.getName(playerID));
 
         object[] pkg = new object[0];
@@ -85,7 +89,70 @@ public class BoardManager : StateMachine, IOnEventCallback
     private void incrementNextPlayer() {
         currentPlayer = ++currentPlayer % playerManager.getTotal();
     }
+
+    public void allowPlayerEndTurn(string playerName) {
+        object[] pkg = new object[0];
+        PhotonNetwork.RaiseEvent(
+            (byte) GameEventCodes.PLAYERCANENDTURN,
+            pkg,
+            new RaiseEventOptions { TargetActors = new int[] { playerManager.getActor(playerName) } },
+            new SendOptions { Reliability = true }
+        );
+    } 
+
+    private IEnumerator waitForPlayerResponse(Action leftFunc, Action rightFunc) {
+        yield return new WaitUntil(() => playerNotifLeft || playerNotifRight);
+        
+        if (playerNotifLeft) {
+            playerNotifLeft = false;
+            playerNotifRight = false;
+            leftFunc.Invoke();
+        } else {
+            playerNotifLeft = false;
+            playerNotifRight = false;
+            rightFunc.Invoke();
+        }
+    }
+
+    public IEnumerator promptExploreTile(string playerName, TileBehaviour tile) {
+        object[] pkg = new object[] {
+            "Unexplored Tile",
+            "Would you like to explore the tile?",
+            "Yes", true,
+            "No", true
+        };
+        PhotonNetwork.RaiseEvent(
+            (byte) GameEventCodes.NOTIFYPLAYER,
+            pkg,
+            new RaiseEventOptions { TargetActors = new int[] { playerManager.getActor(playerName) }},
+            new SendOptions { Reliability = true }
+        );
+
+        yield return StartCoroutine(waitForPlayerResponse(() => tile.openTileSequence(this, playerName), () => allowPlayerEndTurn(playerName)));
+    }
     
+    public IEnumerator promptExhaustTile(string playerName, TileBehaviour tile) {
+        gameUIManager.notificationScreen.initNotification(tile.exhaustTitle, tile.exhaustBody, tile.openSprite);
+        
+        object[] pkg = new object[] {
+            tile.exhaustTitle,
+            tile.exhaustBody,
+            "Yes", true,
+            "No", true
+        };
+        PhotonNetwork.RaiseEvent(
+            (byte) GameEventCodes.NOTIFYPLAYER,
+            pkg,
+            new RaiseEventOptions { TargetActors = new int[] { playerManager.getActor(playerName) }},
+            new SendOptions { Reliability = true }
+        );
+
+        yield return StartCoroutine(waitForPlayerResponse(() => tile.exhaustTileSequence(this, playerName), () => { return; } ));
+
+        gameUIManager.closeNotification();
+        allowPlayerEndTurn(playerName);
+    }
+
     public void OnEvent(EventData photonEvent) {
         if (photonEvent.Code < 200) {
             GameEventCodes eventCode = (GameEventCodes) photonEvent.Code;
@@ -101,6 +168,12 @@ public class BoardManager : StateMachine, IOnEventCallback
                     break;
                 case GameEventCodes.PLAYERENDTURN:
                     ReceivePlayerEndTurn();
+                    break;
+                case GameEventCodes.PLAYERNOTIFLEFT:
+                    playerNotifLeft = true;
+                    break;
+                case GameEventCodes.PLAYERNOTIFRIGHT:
+                    playerNotifRight = true;
                     break;
             }
         }
@@ -120,19 +193,36 @@ public class BoardManager : StateMachine, IOnEventCallback
         if (currentPlayer >= 2 * playerManager.getTotal()) {
             currentPlayer = 0;
             gameUIManager.setLoadingScreen(false);
+            gameUIManager.logInfo("[Board] Game started.");
             startPlayerTurn(0);
         }
     }
 
     public IEnumerator ReceivePlayerMove(string playerName) {
         int steps = UnityEngine.Random.Range(0, 12);
+        gameUIManager.logInfo(String.Format("[Board] {0} rolled {1}.", playerName, steps.ToString()));
         
         int maxIndex = (boardSize * 4) - 4;
         int initPos = playerManager.getPlayer(playerName).GetComponent<PlayerMovement>().getPosition();
         int finalPos = (initPos + steps) % maxIndex;
         yield return StartCoroutine(movePlayerTo(playerName, finalPos));
 
-        
+        TileBehaviour tile = GameObject.Find("Tile " + finalPos).gameObject.GetComponent<TileBehaviour>();
+
+        switch (tile.currentState) {
+            case TileState.UNEXPLORED:
+                StartCoroutine(promptExploreTile(playerName, tile));
+                break;
+            case TileState.OPENED:
+                StartCoroutine(promptExhaustTile(playerName, tile));
+                break;
+            case TileState.EXHAUSTED:
+                allowPlayerEndTurn(playerName);
+                break;
+            case TileState.SPONTANEOUS:
+                tile.exhaustTileSequence(this, playerName);
+                break;
+        }
     }
     
     public void ReceivePlayerEndTurn() {

@@ -636,6 +636,7 @@ MonoBehaviour:
   playerButtons: {fileID: 329070632}
   loadingScreen: {fileID: 2511709003201235891}
   playerNotificationScreen: {fileID: 1111976631}
+  endTurnButton: {fileID: 1341913325}
 --- !u!114 &705998625
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1308,6 +1309,17 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 4290803586522921495, guid: 1acfab8a9b854a541a504bd14601155a, type: 3}
   m_PrefabInstance: {fileID: 1341913323}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1341913325 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 8651853143778588681, guid: 1acfab8a9b854a541a504bd14601155a, type: 3}
+  m_PrefabInstance: {fileID: 1341913323}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1471060056 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 8489655901916041759, guid: ff88f6618df52844ea94ed0b31edb89f, type: 3}

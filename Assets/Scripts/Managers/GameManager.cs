@@ -9,6 +9,7 @@ public enum GameEventCodes : byte {
     PLAYERSYNCSTATS, // To Host
     PLAYERSTARTTURN, // To Player
     PLAYERMOVE, // To Host
+    PLAYERCANENDTURN, // To Player
     PLAYERENDTURN, // To Host
     NOTIFYPLAYER, // To Player
     PLAYERNOTIFLEFT, // To Host

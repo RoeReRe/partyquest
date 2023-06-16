@@ -14,8 +14,11 @@ public class GameUIManager : MonoBehaviourPunCallbacks, IOnEventCallback
     private PlayerManager playerManager;
     public GameObject playerInfoParent;
     public GameObject playerInfoPrefab;
+    public GameObject chatContent;
+    public TMP_Text chatText;
+    private Queue<TMP_Text> chatQueue = new Queue<TMP_Text>();
     public GameObject loadingScreen;
-    public GameObject notificationScreen;
+    public NotificationHandler notificationScreen;
 
     private Dictionary<string, GameObject> playerDisplays = new Dictionary<string, GameObject>();
 
@@ -46,7 +49,18 @@ public class GameUIManager : MonoBehaviourPunCallbacks, IOnEventCallback
     }
 
     public void closeNotification() {
-        notificationScreen.SetActive(false);
+        notificationScreen.gameObject.SetActive(false);
+    }
+
+    public void logInfo(string info) {
+        TMP_Text temp = Instantiate(chatText, Vector3.zero, Quaternion.identity, chatContent.transform);
+        temp.text = info;
+        chatQueue.Enqueue(temp);
+
+        if (chatQueue.Count > 30) {
+            TMP_Text oldest = chatQueue.Dequeue();
+            GameObject.Destroy(oldest.gameObject);
+        }
     }
     
     public void OnEvent(EventData photonEvent) { 
@@ -61,14 +75,6 @@ public class GameUIManager : MonoBehaviourPunCallbacks, IOnEventCallback
                     break;
             }
         }
-    }
-
-    public override void OnEnable() {
-        PhotonNetwork.AddCallbackTarget(this);
-    }
-
-    public override void OnDisable() {
-        PhotonNetwork.RemoveCallbackTarget(this);
     }
 
     public void ReceiveSyncStats(object[] eventData, string sender) {

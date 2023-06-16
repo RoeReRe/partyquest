@@ -14,7 +14,7 @@ public class NotificationHandler : MonoBehaviour
     [SerializeField] TMP_Text bodyText;
     [SerializeField] Button leftButton;
     [SerializeField] Button rightButton;
-    private Image image;
+    [SerializeField] Image image;
     private Button[] buttonArray = new Button[2];
     private bool leftResponse;
     private bool rightResponse;
@@ -38,7 +38,7 @@ public class NotificationHandler : MonoBehaviour
         this.gameObject.SetActive(true);
     }
 
-    public void initNotification(string title, string body) {
+    private void initNotification(string title, string body) {
         setTitle(title);
         setBody(body);
 

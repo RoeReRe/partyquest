@@ -81,4 +81,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ea7f44de23b3e9f4f98f9bb40ac01673, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  currentState: 0
   openSprite: {fileID: 21300000, guid: 0c9d66ad86dd67c4d95281f5ac3f44b9, type: 3}

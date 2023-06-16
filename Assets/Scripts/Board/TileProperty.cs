@@ -5,6 +5,7 @@ using UnityEngine;
 public class TileProperty : MonoBehaviour
 {
     public Sprite unexploredSprite;
+    public ParticleSystem openAnimation;
     private PlayerManager playerManager;
 
     private void Awake() {
@@ -33,10 +34,9 @@ public class TileProperty : MonoBehaviour
             return bottomLeft + (playerID * interval);
         }
     }
-
+    
     public void exhaustTile() {
-        SpriteRenderer spriteRenderer = GetComponent<SpriteRenderer>();
-        spriteRenderer.sprite = unexploredSprite;
-        spriteRenderer.color = new Color(1f, 1f, 1f, 0.75f);
+        GetComponent<SpriteRenderer>().sprite = null;
+        GetComponentsInChildren<SpriteRenderer>()[1].color = new Color(1f, 1f, 1f, 0.75f);
     }
 }
