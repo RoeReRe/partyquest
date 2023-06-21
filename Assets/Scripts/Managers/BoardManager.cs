@@ -11,15 +11,21 @@ public class BoardManager : StateMachine, IOnEventCallback
     public GameUIManager gameUIManager;
     public PlayerManager playerManager;
     private TileSpawner tileSpawner;
+    private BattleManager battleManager;
     public int boardSize = 11;
     public int currentPlayer = 0;
 
     private bool playerNotifLeft;
     private bool playerNotifRight;
     
+    public GameObject[] enemyList;
+
     private void Awake() {
-        TileSpawner tileSpawner = FindObjectOfType<TileSpawner>();
+        battleManager = FindObjectOfType<BattleManager>();
+        tileSpawner = FindObjectOfType<TileSpawner>();
         tileSpawner.startBoard(boardSize);
+
+        enemyList = Resources.LoadAll<GameObject>("Enemies/Base");
     }
 
     private void Start() {
@@ -189,13 +195,20 @@ public class BoardManager : StateMachine, IOnEventCallback
     
     public void ReceiveGameStart() {
         currentPlayer++;
-        // GameUI calls this when loading of stats are done
+        // GameUI also calls this when loading of stats are done
         if (currentPlayer >= 2 * playerManager.getTotal()) {
             currentPlayer = 0;
             gameUIManager.setLoadingScreen(false);
             gameUIManager.logInfo("[Board] Game started.");
             startPlayerTurn(0);
+            StartCoroutine(testStartBattle());
         }
+    }
+
+    public GameObject background;
+    IEnumerator testStartBattle() {
+        yield return new WaitForRealSeconds(5f);
+        StartCoroutine(battleManager.StartBattleScene(0, playerManager.getAllPlayerNames().ToArray(), enemyList, background));
     }
 
     public IEnumerator ReceivePlayerMove(string playerName) {

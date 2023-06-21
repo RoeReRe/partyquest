@@ -26,8 +26,18 @@ public class PlayerMovement : MonoBehaviour
 
     IEnumerator moveTo(Vector3 destination) {
         animatorObject.SetBool("isWalking", true);
-        SpriteRenderer thisSpriteRenderer = GetComponent<SpriteRenderer>();
+        yield return StartCoroutine(translateTo(destination));
+        animatorObject.SetBool("isWalking", false);
+    }
 
+    public IEnumerator runTo(Vector3 destination) {
+        animatorObject.SetBool("isRunning", true);
+        yield return StartCoroutine(translateTo(destination));
+        animatorObject.SetBool("isRunning", false);
+    }
+
+    IEnumerator translateTo(Vector3 destination) {
+        SpriteRenderer thisSpriteRenderer = GetComponent<SpriteRenderer>();
         if (this.transform.position.x > destination.x) {
             thisSpriteRenderer.flipX = true;
         }
@@ -36,8 +46,6 @@ public class PlayerMovement : MonoBehaviour
             this.transform.position = Vector3.MoveTowards(this.transform.position, destination, moveSpeed * Time.deltaTime);
             yield return new WaitForEndOfFrame();
         }
-
-        animatorObject.SetBool("isWalking", false);
         thisSpriteRenderer.flipX = false;
     }
 

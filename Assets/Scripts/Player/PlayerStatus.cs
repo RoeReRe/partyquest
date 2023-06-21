@@ -71,22 +71,60 @@ public class PlayerStatus : MonoBehaviourPunCallbacks, IOnEventCallback
         avatarSprite.sprite = this.playerSprite;
         usernameText.text = PhotonNetwork.LocalPlayer.NickName;
         
-        health = StatFunction.statToHP(vitality);
-        mana = StatFunction.statToMP(mind);
+        health = StatFunction.VitalityToHP(vitality);
+        mana = StatFunction.MindToMP(mind);
         gold = 100;
 
+        initDisplay();
+    }
+
+    private void initDisplay() {
         updateDisplay();
+
+        // Send to Master
+        object[] pkg = new object[] {
+            health,
+            maxHealth,
+            mana,
+            maxMana,
+            xp / 1000
+        };
+        PhotonNetwork.RaiseEvent(
+            (byte) GameEventCodes.PLAYERINITSTATS,
+            pkg,
+            new RaiseEventOptions { Receivers = ReceiverGroup.MasterClient },
+            new SendOptions { Reliability = true }
+        );
+    }
+
+    private void syncDisplay() {
+        updateDisplay();
+        
+        // Send to Master
+        object[] pkg = new object[] {
+            health,
+            maxHealth,
+            mana,
+            maxMana,
+            xp / 1000
+        };
+        PhotonNetwork.RaiseEvent(
+            (byte) GameEventCodes.PLAYERSYNCSTATS,
+            pkg,
+            new RaiseEventOptions { Receivers = ReceiverGroup.MasterClient },
+            new SendOptions { Reliability = true }
+        );
     }
 
     private void updateDisplay() {
         // HP Calculation
-        maxHealth = StatFunction.statToHP(vitality);
+        maxHealth = StatFunction.VitalityToHP(vitality);
         healthSlider.maxValue = maxHealth;
         healthSlider.value = health;
         healthText.text = health.ToString() + " / " + maxHealth.ToString();
 
         // MP Calculation
-        maxMana = StatFunction.statToMP(mind);
+        maxMana = StatFunction.MindToMP(mind);
         manaSlider.maxValue = maxMana;
         manaSlider.value = mana;
         manaText.text = mana.ToString() + " / " + maxMana.ToString();
@@ -97,21 +135,6 @@ public class PlayerStatus : MonoBehaviourPunCallbacks, IOnEventCallback
 
         // Gold
         goldText.text = "Gold: " + gold.ToString();
-
-        // Send to Master
-        object[] pkg = new object[] {
-            health,
-            maxHealth,
-            mana,
-            maxMana,
-            level
-        };
-        PhotonNetwork.RaiseEvent(
-            (byte) GameEventCodes.PLAYERSYNCSTATS,
-            pkg,
-            new RaiseEventOptions { Receivers = ReceiverGroup.MasterClient },
-            new SendOptions { Reliability = true }
-        );
     }
 
     private int getPropertyValue(string propertyName) {
@@ -129,7 +152,7 @@ public class PlayerStatus : MonoBehaviourPunCallbacks, IOnEventCallback
         foreach (Tuple<string, int> change in changeList) {
             setPropertyValue(change.Item1, getPropertyValue(change.Item1) + change.Item2);
         }
-        updateDisplay();
+        syncDisplay();
         if (timeSeconds != 0f) {
             yield return new WaitForSecondsRealtime(timeSeconds);
             changeList = changeList.Select(change => new Tuple<string, int>(change.Item1, -change.Item2)).ToList();

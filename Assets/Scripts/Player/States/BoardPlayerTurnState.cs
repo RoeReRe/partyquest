@@ -13,7 +13,7 @@ public class BoardPlayerTurnState : PlayerBoardState
     }
 
     public override void OnEnter() {
-        context.UIState(true);
+        context.BoardUIState(true);
         context.ButtonState(true);
     }
 

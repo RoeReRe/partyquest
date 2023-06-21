@@ -19,6 +19,11 @@ public class GameUIManager : MonoBehaviourPunCallbacks, IOnEventCallback
     private Queue<TMP_Text> chatQueue = new Queue<TMP_Text>();
     public GameObject loadingScreen;
     public NotificationHandler notificationScreen;
+    
+    [Header("Battle")]
+    public Animator sceneTransition;
+    public GameObject battlePriorityBar;
+    public GameObject portrait;
 
     private Dictionary<string, GameObject> playerDisplays = new Dictionary<string, GameObject>();
 
@@ -62,7 +67,15 @@ public class GameUIManager : MonoBehaviourPunCallbacks, IOnEventCallback
             GameObject.Destroy(oldest.gameObject);
         }
     }
-    
+
+    public void screenWipeIn() {
+        sceneTransition.SetTrigger("ScreenWipeIn");
+    }
+
+    public void screenFadeOut() {
+        sceneTransition.SetTrigger("ScreenFadeOut");
+    }
+
     public void OnEvent(EventData photonEvent) { 
         if (photonEvent.Code < 200) {
             GameEventCodes eventCode = (GameEventCodes) photonEvent.Code;
@@ -70,11 +83,19 @@ public class GameUIManager : MonoBehaviourPunCallbacks, IOnEventCallback
             string sender = PhotonNetwork.CurrentRoom.GetPlayer(photonEvent.Sender).NickName;
 
             switch (eventCode) {
+                case GameEventCodes.PLAYERINITSTATS:
+                    ReceiveInitStats(eventData, sender);
+                    break;
                 case GameEventCodes.PLAYERSYNCSTATS:
                     ReceiveSyncStats(eventData, sender);
                     break;
             }
         }
+    }
+
+    public void ReceiveInitStats(object[] eventData, string sender) {
+        ReceiveSyncStats(eventData, sender);
+        boardManager.ReceiveGameStart();
     }
 
     public void ReceiveSyncStats(object[] eventData, string sender) {
@@ -88,7 +109,5 @@ public class GameUIManager : MonoBehaviourPunCallbacks, IOnEventCallback
         mana.maxValue = (int) eventData[3];
         mana.value = (int) eventData[2];
         level.text = "Level: " + ((int) eventData[4]).ToString();
-
-        boardManager.ReceiveGameStart();
     }
 }

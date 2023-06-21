@@ -14,7 +14,7 @@ TagManager:
   - Background
   - Tiles
   - Player
-  - Post Process
+  - Battle
   - 
   - 
   - 
@@ -46,6 +46,9 @@ TagManager:
     locked: 0
   - name: Tiles
     uniqueID: 2113261601
+    locked: 0
+  - name: Battle
+    uniqueID: 2648216945
     locked: 0
   - name: Player
     uniqueID: 2118437805

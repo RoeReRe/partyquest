@@ -2,21 +2,34 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
 using Photon.Pun;
 using Photon.Realtime;
 using ExitGames.Client.Photon;
 using System;
+using TMPro;
 
 public class PlayerUIManager : PlayerBoardStateMachine, IOnEventCallback
 {
     public GameObject playerDisplay;
     public GameObject playerButtons;
+    public GameObject playerBattleButtons;
     public GameObject loadingScreen;
     public NotificationHandler playerNotificationScreen;
     public Button endTurnButton;
+    
+    private PlayerStatus playerStatus;
+    public PlayerBattle playerBattle;
+    public GameObject targetScreen;
+    public GameObject targetButtonPrefab;
+    public string[] allies;
+    public string[] enemies;
+    public string currentTarget;
+    public Action<string> currentAction;
 
     private void Start() {
-        UIState(false);
+        BoardUIState(false);
+        BattleUIState(false);
         loadingScreen.SetActive(true);
 
         PhotonNetwork.AutomaticallySyncScene = false;
@@ -25,15 +38,30 @@ public class PlayerUIManager : PlayerBoardStateMachine, IOnEventCallback
         if (PhotonNetwork.IsMasterClient) {
             PhotonNetwork.LoadLevel("MainGame");
         }
+
+        playerStatus = FindObjectOfType<PlayerStatus>();
+        playerBattle = FindObjectOfType<PlayerBattle>();
     }
 
-    public void UIState(bool state) {
+    public void BoardUIState(bool state) {
         playerDisplay.SetActive(state);
         playerButtons.SetActive(state);
     }
 
+    public void BattleUIState(bool state) {
+        targetScreen.SetActive(state);
+        playerBattleButtons.SetActive(state);
+    }
+
     public void ButtonState(bool state) {
         Button[] buttons = playerButtons.GetComponentsInChildren<Button>();
+        foreach (Button button in buttons) {
+            button.interactable = state;
+        }
+    }
+
+    public void BattleButtonState(bool state) {
+        Button[] buttons = playerBattleButtons.GetComponentsInChildren<Button>();
         foreach (Button button in buttons) {
             button.interactable = state;
         }
@@ -50,6 +78,41 @@ public class PlayerUIManager : PlayerBoardStateMachine, IOnEventCallback
 
     public void OnEndTurn() {
         currentState.OnEndTurn();
+    }
+
+    public void OnAttack() {
+        currentAction = currentState.OnAttack;
+        ShowTargets(false);
+    }
+
+    public void ShowTargets(bool showAllies) {
+        foreach (Transform child in targetScreen.transform) {
+            GameObject.Destroy(child.gameObject);
+        }
+        
+        if (showAllies) {
+            foreach (string playerName in allies) {
+                GameObject temp = Instantiate(targetButtonPrefab, Vector3.zero, Quaternion.identity, targetScreen.transform);
+                temp.name = playerName;
+                temp.GetComponentInChildren<TMP_Text>().text = playerName;
+                temp.GetComponent<Button>().onClick.AddListener(OnTargetSelect);
+            }
+        }
+
+        foreach (string enemyName in enemies) {
+            GameObject temp = Instantiate(targetButtonPrefab, Vector3.zero, Quaternion.identity, targetScreen.transform);
+            temp.name = enemyName;
+            temp.GetComponentInChildren<TMP_Text>().text = enemyName;
+            temp.GetComponent<Button>().onClick.AddListener(OnTargetSelect);
+        }
+
+        targetScreen.SetActive(true);
+    }
+
+    public void OnTargetSelect() {
+        currentTarget = EventSystem.current.currentSelectedGameObject.name;
+        currentAction.Invoke(currentTarget);
+        targetScreen.SetActive(false);
     }
 
     public void OnEvent(EventData photonEvent) { 
@@ -70,6 +133,15 @@ public class PlayerUIManager : PlayerBoardStateMachine, IOnEventCallback
                     break;
                 case GameEventCodes.PLAYERCANENDTURN:
                     ReceiveCanEndTurn();
+                    break;
+                case GameEventCodes.PLAYERBATTLEWAIT:
+                    ReceiveBattleWait();
+                    break;
+                case GameEventCodes.PLAYERBATTLEACTION:
+                    ReceiveBattleAction();
+                    break;
+                case GameEventCodes.REFRESHTARGETLIST:
+                    ReceiveTargetList(eventData);
                     break;
             }
         }
@@ -122,5 +194,18 @@ public class PlayerUIManager : PlayerBoardStateMachine, IOnEventCallback
 
     public void ReceiveCanEndTurn() {
         EndTurnState(true);
+    }
+
+    public void ReceiveBattleWait() {
+        ChangeState(new OtherBattleTurnState(this));
+    }
+
+    public void ReceiveBattleAction() {
+        ChangeState(new PlayerBattleTurnState(this));
+    }
+
+    public void ReceiveTargetList(object[] eventData) {
+        this.allies = (string[]) eventData[0];
+        this.enemies = (string[]) eventData[1];
     }
 }

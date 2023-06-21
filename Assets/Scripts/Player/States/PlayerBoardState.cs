@@ -13,4 +13,8 @@ public abstract class PlayerBoardState : State {
     public virtual void OnItem() {}
     public virtual void OnEquip() {}
     public virtual void OnEndTurn() {}
+
+    public virtual void OnAttack(string targetName) {}
+    public virtual void OnGuard() {}
+    public virtual void OnRun() {}
 }
