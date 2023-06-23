@@ -5,12 +5,14 @@ using UnityEngine;
 public class PlayerMovement : MonoBehaviour
 {
     private PlayerManager playerManager;
+    private BattleManager battleManager;
     private Animator animatorObject;
     private int playerPosition;
     [SerializeField] float moveSpeed = 1f;
 
     private void Start() {
         playerManager = FindObjectOfType<PlayerManager>();
+        battleManager = FindObjectOfType<BattleManager>();
         animatorObject = GetComponent<Animator>();
         playerPosition = 0;
     }
@@ -32,7 +34,10 @@ public class PlayerMovement : MonoBehaviour
 
     public IEnumerator runTo(Vector3 destination) {
         animatorObject.SetBool("isRunning", true);
+        float temp = moveSpeed;
+        moveSpeed = 14f;
         yield return StartCoroutine(translateTo(destination));
+        moveSpeed = temp;
         animatorObject.SetBool("isRunning", false);
     }
 
@@ -51,5 +56,25 @@ public class PlayerMovement : MonoBehaviour
 
     public int getPosition() {
         return this.playerPosition;
+    }
+
+    public void playAnimation(Dictionary<BattleCodes, object> actionInfo) {
+        StartCoroutine(playAnimationCoroutine(actionInfo));
+    }
+
+    public IEnumerator playAnimationCoroutine(Dictionary<BattleCodes, object> actionInfo) {
+        if ((BattleCodes) actionInfo[BattleCodes.ACTION_TYPE] == BattleCodes.ATTACK) {
+            yield return StartCoroutine(basicAttack());
+        }
+
+        // Implement play afrter animation done
+        PlayerUnit unit = (PlayerUnit) battleManager.unitList[this.gameObject.name];
+        unit.VisualCallback(actionInfo);
+    }
+
+    private IEnumerator basicAttack() {
+        animatorObject.SetInteger("attackType", UnityEngine.Random.Range(0, 2));
+        animatorObject.SetTrigger("isAttacking");
+        yield return new WaitForSecondsRealtime(0.5f);   
     }
 }

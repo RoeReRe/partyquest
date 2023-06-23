@@ -19,6 +19,7 @@ public class GameUIManager : MonoBehaviourPunCallbacks, IOnEventCallback
     private Queue<TMP_Text> chatQueue = new Queue<TMP_Text>();
     public GameObject loadingScreen;
     public NotificationHandler notificationScreen;
+    public GameObject rewardScreen;
     
     [Header("Battle")]
     public Animator sceneTransition;
@@ -74,6 +75,10 @@ public class GameUIManager : MonoBehaviourPunCallbacks, IOnEventCallback
 
     public void screenFadeOut() {
         sceneTransition.SetTrigger("ScreenFadeOut");
+    }
+
+    public void setRewardScreen(int gold, int xp) {
+        rewardScreen.GetComponentInChildren<TMP_Text>().text = string.Format("Victory\nGold: {0}\nXP: {1}", gold, xp);
     }
 
     public void OnEvent(EventData photonEvent) { 

@@ -4,13 +4,16 @@ using UnityEngine;
 
 public class TestBattleBehaviour : EnemyBattleBehaviour
 {
-    public override int health { get; set; } = 500;
+    public override float startPriority { get; set; } = 10f;
+    public override int health { get; set; } = 200;
     public override int physicalAttack { get; set; } = 30;
     public override int magicalAttack { get; set; } = 5;
     public override int physicalDefence { get; set; } = 10;
     public override int magicalDefence { get; set; } = 20;
     public override int shield { get; set; } = 5;
     public override BattleCodes weakness { get; set; } = BattleCodes.DAMAGE_PHYSICAL;
+    public override int gold { get; set; } = 200;
+    public override int xp { get; set; } = 500;
 
     public override void Awake() {
         base.Awake();
@@ -18,6 +21,14 @@ public class TestBattleBehaviour : EnemyBattleBehaviour
 
     public override void OnAction()
     {
+         if (shield == 0) {
+            shield = 5;
+            StartCoroutine(PlayShieldRecoverAnimation());
+            UpdateShieldUI();
+            battleManager.unitList[unitName.text].SetPriority(15f);
+            return;
+         }
+         
          Dictionary<BattleCodes, object> actionInfo = new Dictionary<BattleCodes, object> {
             { BattleCodes.ACTION_TYPE, BattleCodes.ATTACK },
             { BattleCodes.TARGET_NAME, battleManager.playerManager.getName(0) },
@@ -27,5 +38,10 @@ public class TestBattleBehaviour : EnemyBattleBehaviour
             { BattleCodes.WAIT_TIME, 15f }
         };
         SendAction(actionInfo);
+    }
+
+    public override void OnShieldBreak()
+    {
+        battleManager.unitList[unitName.text].SetPriority(15f);
     }
 }

@@ -504,8 +504,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d46d2dabc4f8ed04bb16d84e7a1a4811, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  attackImpactEffect: {fileID: 5320500782379268574, guid: d2bd248baa4ac8b47a61592e6b69b45a, type: 3}
   shieldHitEffect: {fileID: 8292499379240111414, guid: 0ac317fb0ded7ad4295ac858ea35ab69, type: 3}
   shieldBreakEffect: {fileID: 1424319757735082372, guid: 977bd7f4cc788d644bc5049c05b51d23, type: 3}
+  shieldRecoverEffect: {fileID: 6063292985590106244, guid: 0ed9875aa2a18834c95a727f0cde87a5, type: 3}
 --- !u!1 &8817053764093320499
 GameObject:
   m_ObjectHideFlags: 0

@@ -10,6 +10,8 @@ public enum GameEventCodes : byte {
     PLAYERSTARTTURN, // To Player
     PLAYERMOVE, // To Host
     PLAYERCANENDTURN, // To Player
+    BATTLESTART, // To Player
+    RESUMEBOARD, // To Player
     PLAYERENDTURN, // To Host
     NOTIFYPLAYER, // To Player
     PLAYERNOTIFLEFT, // To Host

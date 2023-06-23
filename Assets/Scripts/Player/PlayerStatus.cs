@@ -119,22 +119,22 @@ public class PlayerStatus : MonoBehaviourPunCallbacks, IOnEventCallback
     private void updateDisplay() {
         // HP Calculation
         maxHealth = StatFunction.VitalityToHP(vitality);
-        healthSlider.maxValue = maxHealth;
-        healthSlider.value = health;
+        healthSlider.maxValue = Math.Max(0, maxHealth);
+        healthSlider.value = Math.Max(0, health);
         healthText.text = health.ToString() + " / " + maxHealth.ToString();
 
         // MP Calculation
         maxMana = StatFunction.MindToMP(mind);
-        manaSlider.maxValue = maxMana;
-        manaSlider.value = mana;
+        manaSlider.maxValue = Math.Max(0, maxMana);
+        manaSlider.value = Math.Max(0, mana);
         manaText.text = mana.ToString() + " / " + maxMana.ToString();
 
         // Level Calculation
         int level = xp / 1000;
-        levelText.text = string.Format("Level: {0} ({1} XP)", level, xp);
+        levelText.text = string.Format("Level: {0} ({1} XP)", Math.Max(0, level), Math.Max(0, xp));
 
         // Gold
-        goldText.text = "Gold: " + gold.ToString();
+        goldText.text = "Gold: " + Math.Max(0, gold).ToString();
     }
 
     private int getPropertyValue(string propertyName) {
@@ -148,7 +148,6 @@ public class PlayerStatus : MonoBehaviourPunCallbacks, IOnEventCallback
     }
 
     public IEnumerator changeStatus(List<Tuple<string, int>> changeList, float timeSeconds) {
-        
         foreach (Tuple<string, int> change in changeList) {
             setPropertyValue(change.Item1, getPropertyValue(change.Item1) + change.Item2);
         }

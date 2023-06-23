@@ -24,7 +24,6 @@ public class PlayerUIManager : PlayerBoardStateMachine, IOnEventCallback
     public GameObject targetButtonPrefab;
     public string[] allies;
     public string[] enemies;
-    public string currentTarget;
     public Action<string> currentAction;
 
     private void Start() {
@@ -81,7 +80,7 @@ public class PlayerUIManager : PlayerBoardStateMachine, IOnEventCallback
     }
 
     public void OnAttack() {
-        currentAction = currentState.OnAttack;
+        currentAction = battleState.OnAttack;
         ShowTargets(false);
     }
 
@@ -110,7 +109,7 @@ public class PlayerUIManager : PlayerBoardStateMachine, IOnEventCallback
     }
 
     public void OnTargetSelect() {
-        currentTarget = EventSystem.current.currentSelectedGameObject.name;
+        string currentTarget = EventSystem.current.currentSelectedGameObject.name;
         currentAction.Invoke(currentTarget);
         targetScreen.SetActive(false);
     }
@@ -133,6 +132,12 @@ public class PlayerUIManager : PlayerBoardStateMachine, IOnEventCallback
                     break;
                 case GameEventCodes.PLAYERCANENDTURN:
                     ReceiveCanEndTurn();
+                    break;
+                case GameEventCodes.BATTLESTART:
+                    ReceiveStartBattle();
+                    break;
+                case GameEventCodes.RESUMEBOARD:
+                    ReceiveResumeBoard();
                     break;
                 case GameEventCodes.PLAYERBATTLEWAIT:
                     ReceiveBattleWait();
@@ -196,12 +201,23 @@ public class PlayerUIManager : PlayerBoardStateMachine, IOnEventCallback
         EndTurnState(true);
     }
 
+    public void ReceiveStartBattle() {
+        battleState = new OtherBattleTurnState(this);
+        battleState.OnEnter();
+    } 
+
+    public void ReceiveResumeBoard() {
+        battleState = null;
+        playerBattleButtons.SetActive(false);
+        playerButtons.SetActive(true);
+    }
+
     public void ReceiveBattleWait() {
-        ChangeState(new OtherBattleTurnState(this));
+        ChangeBattleState(new OtherBattleTurnState(this));
     }
 
     public void ReceiveBattleAction() {
-        ChangeState(new PlayerBattleTurnState(this));
+        ChangeBattleState(new PlayerBattleTurnState(this));
     }
 
     public void ReceiveTargetList(object[] eventData) {

@@ -20,7 +20,11 @@ public class PlayerBattleTurnState : PlayerBoardState
 
     public override void OnAttack(string targetName) {
         context.playerBattle.Attack(targetName);
-        context.ChangeState(new OtherBattleTurnState(context));
+        context.ChangeBattleState(new OtherBattleTurnState(context));
+    }
+
+    public override void OnGuard() {
+        
     }
     
     public override void OnExit()

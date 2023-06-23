@@ -18,7 +18,7 @@ public class BoardPlayerTurnState : PlayerBoardState
     }
 
     public override void OnExit() {
-        context.ButtonState(false);
+        
     }
 
     public override void OnMove() {

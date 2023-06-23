@@ -9,7 +9,7 @@ using System;
 public class PlayerBattle : MonoBehaviourPunCallbacks, IOnEventCallback
 {
     private PlayerStatus playerStatus;
-
+    
     private void Awake() {
         playerStatus = GetComponent<PlayerStatus>();
     } 
@@ -26,6 +26,7 @@ public class PlayerBattle : MonoBehaviourPunCallbacks, IOnEventCallback
             { BattleCodes.DAMAGE_TYPE, BattleCodes.DAMAGE_PHYSICAL },
             { BattleCodes.HIT_COUNT, hitCount},
             { BattleCodes.WAIT_TIME, waitTime },
+            { BattleCodes.PLAYER_RETURN_TO_POS, true }
         };
         
         SendAction(actionInfo);

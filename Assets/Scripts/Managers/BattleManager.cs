@@ -16,12 +16,17 @@ public class BattleManager : MonoBehaviourPunCallbacks, IOnEventCallback
     private Vector3 startPositionZero = new Vector3(-0.85f, 0.45f, 0);
     private Vector3 startPositionFour = new Vector3(-3.85f, -2.2f, 0);
     public Dictionary<string, Unit> unitList = new Dictionary<string, Unit>();
+    List<string> allies = new List<string>();
+    List<string> enemies = new List<string>();
     private Vector3 priorityBarLeftLocal;
     private Vector3 priorityBarRightLocal;
 
     private Vector3 ENEMY_POS_0 = new Vector3(4.6f, 0.55f, 0f);
     private Vector3 ENEMY_POS_1 = new Vector3(6.85f, -0.7f, 0f); 
     private Vector3 ENEMY_POS_2 = new Vector3(2.95f, -1.9f, 0f);
+
+    private int goldReward;
+    private int xpReward;
     
     private void Awake() {
         gameUIManager = FindObjectOfType<GameUIManager>();
@@ -41,7 +46,7 @@ public class BattleManager : MonoBehaviourPunCallbacks, IOnEventCallback
         
         object[] pkg = new object[0];
         PhotonNetwork.RaiseEvent(
-            (byte) GameEventCodes.PLAYERBATTLEWAIT,
+            (byte) GameEventCodes.BATTLESTART,
             pkg,
             new RaiseEventOptions { Receivers = ReceiverGroup.Others },
             new SendOptions { Reliability = true }
@@ -49,6 +54,8 @@ public class BattleManager : MonoBehaviourPunCallbacks, IOnEventCallback
 
         yield return new WaitForSecondsRealtime(1f);
         Instantiate(background, background.transform.position, Quaternion.identity, this.transform);
+        goldReward = 0;
+        xpReward = 0;
         unitList.Clear();
         gameUIManager.battlePriorityBar.SetActive(true);
         isTimeFrozen = true;
@@ -62,12 +69,13 @@ public class BattleManager : MonoBehaviourPunCallbacks, IOnEventCallback
             GameObject player = playerManager.getPlayer(playerName);
             player.transform.localScale = new Vector3(1.5f, 1.5f, 1.5f);
             player.transform.position = getPlayerStartPost(playerName) - new Vector3(UnityEngine.Random.Range(5f, 10f), 0f, 0f);
-            StartCoroutine(player.GetComponent<PlayerMovement>().runTo(getPlayerStartPost(playerName)));
+            runPlayerTo(playerName, getPlayerStartPost(playerName));
             unitList.Add(playerName, new PlayerUnit(this, player, calculateStartPriority(player, battlePosition)));
         }
 
         RefreshTargetList();
 
+        yield return new WaitForSecondsRealtime(2f);
         isTimeFrozen = false;
     }
 
@@ -85,13 +93,17 @@ public class BattleManager : MonoBehaviourPunCallbacks, IOnEventCallback
         }
     }
 
-    private Vector3 getPlayerStartPost(string playerName) {
+    public Vector3 getPlayerStartPost(string playerName) {
         if (playerManager.getTotal() == 1) {
             return startPositionZero;
         }
 
         Vector3 interval = (startPositionFour - startPositionZero) / (playerManager.getTotal() - 1);
         return startPositionZero + (interval * playerManager.getID(playerName));
+    }
+
+    public void runPlayerTo(string playerName, Vector3 destination) {
+        StartCoroutine(playerManager.getPlayer(playerName).GetComponent<PlayerMovement>().runTo(destination));
     }
 
     private float calculateStartPriority(GameObject player, int battlePosition) {
@@ -112,7 +124,7 @@ public class BattleManager : MonoBehaviourPunCallbacks, IOnEventCallback
     }
 
     public GameObject createPortrait(Sprite avatar) {
-        GameObject temp = Instantiate(gameUIManager.portrait, Vector3.zero, Quaternion.identity, gameUIManager.battlePriorityBar.transform);
+        GameObject temp = Instantiate(gameUIManager.portrait, Vector3.forward, Quaternion.identity, gameUIManager.battlePriorityBar.transform);
         temp.transform.Find("Mask/Avatar")
             .gameObject
             .GetComponent<Image>()
@@ -144,12 +156,16 @@ public class BattleManager : MonoBehaviourPunCallbacks, IOnEventCallback
         }
         GameObject newEnemy = Instantiate(enemy, temp, Quaternion.identity, this.transform);
         newEnemy.name = enemy.name;
-        unitList.Add(enemy.name, new EnemyUnit(this, newEnemy, UnityEngine.Random.Range(10f, 20f)));
+        
+        float startPriority = newEnemy.GetComponent<EnemyBattleBehaviour>().startPriority;
+        startPriority = startPriority + Mathf.Min(UnityEngine.Random.Range(0f, startPriority), 15f);
+        
+        unitList.Add(enemy.name, new EnemyUnit(this, newEnemy, startPriority));
     }
 
     public void RefreshTargetList() {
-        List<string> allies = new List<string>();
-        List<string> enemies = new List<string>();
+        allies.Clear();
+        enemies.Clear();
 
         foreach (string unitName in unitList.Keys.ToList()) {
             if (unitList[unitName].GetType() == typeof(PlayerUnit)) {
@@ -166,6 +182,77 @@ public class BattleManager : MonoBehaviourPunCallbacks, IOnEventCallback
             new RaiseEventOptions { Receivers = ReceiverGroup.Others },
             new SendOptions { Reliability = true }
         );
+    }
+
+    public void setDead(string unitName, int gold, int xp) {
+        goldReward += gold;
+        xpReward += xp;
+        unitList.Remove(unitName);
+        RefreshTargetList();
+
+        if (!enemies.Any()) {
+            StartCoroutine(ChangeToVictoryState());
+        }
+    }
+
+    private IEnumerator ChangeToVictoryState() {
+        yield return new WaitForRealSeconds(2f);
+        
+        isTimeFrozen = true;
+        
+        // Disable controls
+        PhotonNetwork.RaiseEvent(
+            (byte) GameEventCodes.PLAYERBATTLEWAIT,
+            new object[0],
+            new RaiseEventOptions { Receivers = ReceiverGroup.Others },
+            new SendOptions { Reliability = true }
+        );
+        
+        // Show rewards
+        gameUIManager.rewardScreen.SetActive(true);
+        gameUIManager.setRewardScreen(goldReward, xpReward);
+
+        // Give rewards
+        playerManager.changeStatus(
+            playerManager.getAllPlayerNames().ToArray(),
+            new Dictionary<string, int> {
+                { "gold", goldReward },
+                { "xp", xpReward }
+            },
+            StatusChangeType.CHANGESTAT,
+            StatusChangeType.ABSOLUTE,
+            0f
+        );
+
+        yield return new WaitForRealSeconds(5f);
+        gameUIManager.screenWipeIn();
+        yield return new WaitForSecondsRealtime(1f);
+
+        gameUIManager.rewardScreen.SetActive(false);
+        gameUIManager.battlePriorityBar.SetActive(false);
+        
+        foreach (Transform child in this.gameObject.transform) {
+            Destroy(child.gameObject);
+        }
+
+        // Respawn players back in board
+        foreach (string playerName in playerManager.getAllPlayerNames()) {
+            GameObject player = playerManager.getPlayer(playerName);
+            player.transform.localScale = new Vector3(0.7f, 0.7f, 0.7f);
+            player.transform.position = GameObject.Find("Tile " + player.GetComponent<PlayerMovement>().getPosition().ToString())
+                .GetComponent<TileProperty>()
+                .getPosition(playerManager.getID(player.name));    
+        }
+
+        // Allow controls
+        PhotonNetwork.RaiseEvent(
+            (byte) GameEventCodes.RESUMEBOARD,
+            new object[0],
+            new RaiseEventOptions { Receivers = ReceiverGroup.Others },
+            new SendOptions { Reliability = true }
+        );
+
+        gameUIManager.screenFadeOut();
     }
 
     public void OnEvent(EventData photonEvent) {
@@ -192,8 +279,8 @@ public class BattleManager : MonoBehaviourPunCallbacks, IOnEventCallback
 
     public void ReceiveAction(object[] eventData, string sender) {
         Dictionary<BattleCodes, object> actionInfo = CustomType.DeserializeBattleCode((Dictionary<byte, object>) eventData[0]);
+        unitList[sender].SenderVisualAction(actionInfo);
         unitList[(string) actionInfo[BattleCodes.TARGET_NAME]].ReceiveAction(eventData, actionInfo, sender);
-        unitList[sender].SetPriority((float) actionInfo[BattleCodes.WAIT_TIME]);
     }
 }
 
@@ -213,66 +300,19 @@ public enum BattleCodes : byte {
     DAMAGE_NUMBER,
     HIT_COUNT, 
     WAIT_TIME,
+    PLAYER_RETURN_TO_POS,
 }
 
 public abstract class Unit {
+    public BattleManager battleManager;
     public float priority;
     public GameObject portrait;
     public bool isIdle = true;
     public abstract void OnAction();
+    public abstract void SenderVisualAction(Dictionary<BattleCodes, object> actionInfo);
     public abstract void ReceiveAction(object[] eventData, Dictionary<BattleCodes, object> actionInfo, string sender);
     public void SetPriority(float priority) {
         this.priority = priority;
         isIdle = true;
-    }
-}
-
-public class PlayerUnit : Unit {
-    private BattleManager battleManager;
-    private GameObject player;
-    
-    public PlayerUnit(BattleManager context, GameObject player, float priority) {
-        this.priority = priority;
-        this.player = player;
-        this.battleManager = context;
-        this.portrait = context.createPortrait(player.GetComponent<SpriteRenderer>().sprite);
-    }
-
-    public override void OnAction() {
-        object[] pkg = new object[0];
-        PhotonNetwork.RaiseEvent(
-            (byte) GameEventCodes.PLAYERBATTLEACTION,
-            pkg,
-            new RaiseEventOptions { TargetActors = new int[] { battleManager.playerManager.getActor(player.name) }},
-            new SendOptions { Reliability = true }
-        );
-    }
-
-    public override void ReceiveAction(object[] eventData, Dictionary<BattleCodes, object> actionInfo, string sender) {
-        PhotonNetwork.RaiseEvent(
-            (byte) GameEventCodes.SENDBATTLEACTION,
-            eventData,
-            new RaiseEventOptions { TargetActors = new int[] { battleManager.playerManager.getActor(player.name) }},
-            new SendOptions { Reliability = true }
-        );
-    }
-}
-
-public class EnemyUnit : Unit {
-    private GameObject enemy;
-
-    public EnemyUnit(BattleManager context, GameObject enemy, float priority) {
-        this.priority = priority;
-        this.enemy = enemy;
-        this.portrait = context.createPortrait(enemy.GetComponentInChildren<SpriteRenderer>().sprite);
-    }
-
-    public override void OnAction()
-    {
-        enemy.GetComponent<EnemyBattleBehaviour>().OnAction();
-    }
-
-    public override void ReceiveAction(object[] eventData, Dictionary<BattleCodes, object> actionInfo, string sender) {
-        enemy.GetComponent<EnemyBattleBehaviour>().ReceiveAction(actionInfo, sender);
     }
 }

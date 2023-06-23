@@ -15,6 +15,7 @@ public abstract class EnemyBattleBehaviour : MonoBehaviour
     protected TMP_Text shieldCount;
     
     // Enemy status
+    public abstract float startPriority { get; set; }
     public abstract int health { get; set; }
     public abstract int physicalAttack { get; set; }
     public abstract int magicalAttack { get; set; }
@@ -22,13 +23,17 @@ public abstract class EnemyBattleBehaviour : MonoBehaviour
     public abstract int magicalDefence  { get; set; }
     public abstract int shield { get; set; }
     public abstract BattleCodes weakness { get; set; }
+    public abstract int gold { get; set; }
+    public abstract int xp { get; set; }
 
     // Action List
     public List<Action> actionList = new List<Action>();
 
     // Common FX
+    [SerializeField] ParticleSystem attackImpactEffect;
     [SerializeField] ParticleSystem shieldHitEffect;
     [SerializeField] ParticleSystem shieldBreakEffect;
+    [SerializeField] ParticleSystem shieldRecoverEffect;
 
     public virtual void Awake() {
         battleManager = FindObjectOfType<BattleManager>();
@@ -39,7 +44,7 @@ public abstract class EnemyBattleBehaviour : MonoBehaviour
         UpdateShieldUI();
     }
 
-    private void UpdateShieldUI() {
+    public void UpdateShieldUI() {
         shieldCount.text = shield.ToString();
         if (shield <= 0) {
             shieldImage.gameObject.SetActive(false);
@@ -62,17 +67,17 @@ public abstract class EnemyBattleBehaviour : MonoBehaviour
     }
 
     public void ReceiveAttack(Dictionary<BattleCodes, object> actionInfo, string sender) {
-        // Should abstract and rmb max
-        int receivedDamage;
-        if (shield <= 0) {
-            receivedDamage = Math.Max((int) actionInfo[BattleCodes.DAMAGE_NUMBER] - physicalDefence, 0);
-        } else {
-            receivedDamage = Math.Max(((int) actionInfo[BattleCodes.DAMAGE_NUMBER] * 25 / 100) - physicalDefence, 0);
-        }
+        int receivedDamage = StatFunction.EnemyDamageToHP((int) actionInfo[BattleCodes.DAMAGE_NUMBER], physicalDefence, shield > 0);
+        StartCoroutine(PlayImpactAnimation(receivedDamage));
         health -= receivedDamage;
 
+        if (health <= 0) {
+            StartCoroutine(OnDeath());
+            return;
+        }
+
         if ((BattleCodes) actionInfo[BattleCodes.DAMAGE_TYPE] == weakness && shield > 0) {
-            BreakShield((int) actionInfo[BattleCodes.HIT_COUNT]);
+            StartCoroutine(BreakShield((int) actionInfo[BattleCodes.HIT_COUNT]));
         }
 
         Debug.Log(String.Format("{0} received {1} raw damage, which took {2} HP. Current HP: {3}.",
@@ -82,7 +87,16 @@ public abstract class EnemyBattleBehaviour : MonoBehaviour
             health));
     }
 
-    public void BreakShield(int count) {
+    public IEnumerator PlayImpactAnimation(int damage) {
+        yield return new WaitForSecondsRealtime(0.25f);
+        ParticleSystem impact = Instantiate(attackImpactEffect, this.transform.position, Quaternion.identity);
+        var emission = impact.emission;
+        emission.rateOverTime = Math.Clamp(damage, 150, 1000);
+        impact.Play(true);
+    }
+
+    public IEnumerator BreakShield(int count) {
+        yield return new WaitForSecondsRealtime(0.25f);
         shield = Math.Max(shield - count, 0);
         if (shield > 0) {
             ParticleSystem effect = Instantiate(shieldHitEffect, shieldImage.transform.position, Quaternion.identity);
@@ -90,9 +104,23 @@ public abstract class EnemyBattleBehaviour : MonoBehaviour
         } else {
             ParticleSystem effect = Instantiate(shieldBreakEffect, shieldImage.transform.position, Quaternion.identity);
             effect.Play();
+            OnShieldBreak();
         }
         UpdateShieldUI();
     }
 
+    public IEnumerator PlayShieldRecoverAnimation() {
+        ParticleSystem effect = Instantiate(shieldRecoverEffect, shieldImage.transform.position, Quaternion.identity);
+        effect.Play(true);
+        yield return new WaitForEndOfFrame();
+    }
+
+    public IEnumerator OnDeath() {
+        battleManager.setDead(this.gameObject.name, gold, xp);
+        Destroy(this.gameObject);
+        yield return new WaitForEndOfFrame();
+    }
+
     public abstract void OnAction();
+    public abstract void OnShieldBreak();
 }

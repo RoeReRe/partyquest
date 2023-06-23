@@ -35,6 +35,7 @@ public static class StatFunction
     }
     
     public static float polynomial(int x, params float[] coefficients) {
+        x = Math.Max(x, 0);
         double ans = 0;
         for (int i = 0; i < coefficients.Length; i++) {
             ans += coefficients[i] * Math.Pow(x, i);
@@ -95,5 +96,17 @@ public static class StatFunction
         ));
 
         return Math.Max(attack - vitalityReduction - strengthReduction, 0);
+    }
+
+
+    // Enemy Incoming Calculations
+    public static int EnemyDamageToHP(int rawDamage, int defence, bool hasShield) {
+        int hp;
+        if (hasShield) {
+            hp = (rawDamage * 50 / 100) - defence;
+        } else {
+            hp = rawDamage - defence;
+        }
+        return Math.Max(hp, 0);
     }
 }
