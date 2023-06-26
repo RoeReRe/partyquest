@@ -67,7 +67,10 @@ public class PlayerMovement : MonoBehaviour
             yield return StartCoroutine(basicAttack());
         }
 
-        // Implement play afrter animation done
+        if ((BattleCodes) actionInfo[BattleCodes.ACTION_TYPE] == BattleCodes.SKILL) {
+            yield return StartCoroutine(useSkill(actionInfo));
+        }
+
         PlayerUnit unit = (PlayerUnit) battleManager.unitList[this.gameObject.name];
         unit.VisualCallback(actionInfo);
     }
@@ -76,5 +79,20 @@ public class PlayerMovement : MonoBehaviour
         animatorObject.SetInteger("attackType", UnityEngine.Random.Range(0, 2));
         animatorObject.SetTrigger("isAttacking");
         yield return new WaitForSecondsRealtime(0.5f);   
+    }
+
+    private IEnumerator useSkill(Dictionary<BattleCodes, object> actionInfo) {
+        string path = string.Format("Skills/{0}", (string) actionInfo[BattleCodes.SKILL_NAME]);
+        Skill skill = (Skill) Resources.Load(path);
+        
+        if ((BattleCodes) actionInfo[BattleCodes.DAMAGE_TYPE] == BattleCodes.DAMAGE_PHYSICAL) {
+            animatorObject.SetInteger("attackType", 2);
+        } else {
+            animatorObject.SetInteger("attackType", 3);
+        }
+        animatorObject.SetTrigger("isAttacking");
+        skill.SenderAction(this.gameObject);
+
+        yield return new WaitForSecondsRealtime((float) actionInfo[BattleCodes.CAST_TIME]);
     }
 }

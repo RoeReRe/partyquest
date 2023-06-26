@@ -207,7 +207,7 @@ public class BoardManager : StateMachine, IOnEventCallback
 
     public GameObject background;
     IEnumerator testStartBattle() {
-        yield return new WaitForRealSeconds(5f);
+        yield return new WaitForRealSeconds(2f);
         StartCoroutine(battleManager.StartBattleScene(0, playerManager.getAllPlayerNames().ToArray(), enemyList, background));
     }
 

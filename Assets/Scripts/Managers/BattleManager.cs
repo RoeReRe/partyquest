@@ -279,12 +279,14 @@ public class BattleManager : MonoBehaviourPunCallbacks, IOnEventCallback
 
     public void ReceiveAction(object[] eventData, string sender) {
         Dictionary<BattleCodes, object> actionInfo = CustomType.DeserializeBattleCode((Dictionary<byte, object>) eventData[0]);
-        unitList[sender].SenderVisualAction(actionInfo);
+        unitList[sender].SenderAction(actionInfo);
         unitList[(string) actionInfo[BattleCodes.TARGET_NAME]].ReceiveAction(eventData, actionInfo, sender);
     }
 }
 
 public enum BattleCodes : byte {
+    NONE,    
+    
     ACTION_TYPE,
     ATTACK,
     GUARD,
@@ -295,12 +297,17 @@ public enum BattleCodes : byte {
     DAMAGE_TYPE,
     DAMAGE_PHYSICAL,
     DAMAGE_MAGICAL,
+    DAMAGE_AMOUNT,
 
     TARGET_NAME,
     DAMAGE_NUMBER,
-    HIT_COUNT, 
+    HIT_COUNT,
+    COOL_DOWN, 
     WAIT_TIME,
     PLAYER_RETURN_TO_POS,
+
+    SKILL_NAME,
+    CAST_TIME,
 }
 
 public abstract class Unit {
@@ -309,7 +316,7 @@ public abstract class Unit {
     public GameObject portrait;
     public bool isIdle = true;
     public abstract void OnAction();
-    public abstract void SenderVisualAction(Dictionary<BattleCodes, object> actionInfo);
+    public abstract void SenderAction(Dictionary<BattleCodes, object> actionInfo);
     public abstract void ReceiveAction(object[] eventData, Dictionary<BattleCodes, object> actionInfo, string sender);
     public void SetPriority(float priority) {
         this.priority = priority;

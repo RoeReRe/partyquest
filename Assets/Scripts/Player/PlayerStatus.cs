@@ -76,6 +76,10 @@ public class PlayerStatus : MonoBehaviourPunCallbacks, IOnEventCallback
         gold = 100;
 
         initDisplay();
+
+        foreach (Skill playerSkill in playerClass.skillList) {
+            this.playerUIManager.CreateSkillDisplay(playerSkill);
+        }
     }
 
     private void initDisplay() {
@@ -121,13 +125,13 @@ public class PlayerStatus : MonoBehaviourPunCallbacks, IOnEventCallback
         maxHealth = StatFunction.VitalityToHP(vitality);
         healthSlider.maxValue = Math.Max(0, maxHealth);
         healthSlider.value = Math.Max(0, health);
-        healthText.text = health.ToString() + " / " + maxHealth.ToString();
+        healthText.text = healthSlider.value.ToString() + " / " + healthSlider.maxValue.ToString();
 
         // MP Calculation
         maxMana = StatFunction.MindToMP(mind);
         manaSlider.maxValue = Math.Max(0, maxMana);
         manaSlider.value = Math.Max(0, mana);
-        manaText.text = mana.ToString() + " / " + maxMana.ToString();
+        manaText.text = manaSlider.value.ToString() + " / " + manaSlider.maxValue.ToString();
 
         // Level Calculation
         int level = xp / 1000;

@@ -23,6 +23,11 @@ public class PlayerBattleTurnState : PlayerBoardState
         context.ChangeBattleState(new OtherBattleTurnState(context));
     }
 
+    public override void OnSkillChosen(string targetName, Skill skill) {
+        context.playerBattle.Skill(targetName, skill);
+        context.ChangeBattleState(new OtherBattleTurnState(context));
+    }
+
     public override void OnGuard() {
         
     }

@@ -9,7 +9,7 @@ public class TestBattleBehaviour : EnemyBattleBehaviour
     public override int physicalAttack { get; set; } = 30;
     public override int magicalAttack { get; set; } = 5;
     public override int physicalDefence { get; set; } = 10;
-    public override int magicalDefence { get; set; } = 20;
+    public override int magicalDefence { get; set; } = 5;
     public override int shield { get; set; } = 5;
     public override BattleCodes weakness { get; set; } = BattleCodes.DAMAGE_PHYSICAL;
     public override int gold { get; set; } = 200;

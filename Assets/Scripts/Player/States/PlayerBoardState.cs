@@ -15,6 +15,7 @@ public abstract class PlayerBoardState : State {
     public virtual void OnEndTurn() {}
 
     public virtual void OnAttack(string targetName) {}
+    public virtual void OnSkillChosen(string targetName, Skill skill) {}
     public virtual void OnGuard() {}
     public virtual void OnRun() {}
 }

@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9a1b5313acfb7154f956f7faaa8e1bfd, type: 3}
+  m_Name: Energy Bolt
+  m_EditorClassIdentifier: 
+  skillName: Energy Bolt
+  skillRank: 0
+  skillIcon: {fileID: 21300000, guid: 2c9e1e10abb92f34f9a160b63dbe8ff1, type: 3}
+  skillDesc: Fire a small orb of mana towards a target, dealing light magic damage.
+  senderPS: {fileID: 797784518864179116, guid: c6b676a79cb04e3429c9ee489e965dfc, type: 3}
+  senderVFX: {fileID: 0}
+  receiverPS: {fileID: 4033287822461114141, guid: d913e866795543e44a9c9fb0842bba4f, type: 3}
+  receiverVFX: {fileID: 0}
+  WT: 7
+  CD: 12
+  castTime: 1
+  returnToPos: 1
+  damageType: 9
+  damageAmount: 1

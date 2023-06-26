@@ -31,7 +31,7 @@ public class PlayerUnit : Unit {
         );
     }
 
-    public override void SenderVisualAction(Dictionary<BattleCodes, object> actionInfo) {
+    public override void SenderAction(Dictionary<BattleCodes, object> actionInfo) {
         playerMovement.playAnimation(actionInfo);
     }
 

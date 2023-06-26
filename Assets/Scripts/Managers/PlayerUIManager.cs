@@ -21,7 +21,14 @@ public class PlayerUIManager : PlayerBoardStateMachine, IOnEventCallback
     private PlayerStatus playerStatus;
     public PlayerBattle playerBattle;
     public GameObject targetScreen;
+    public GameObject targetScreenContent;
     public GameObject targetButtonPrefab;
+    public GameObject skillInfoPrefab;
+    public GameObject skillScreen;
+    public GameObject skillScreenContent;
+    public List<GameObject> skillList = new List<GameObject>();
+    public List<Skill> skillSOList = new List<Skill>();
+
     public string[] allies;
     public string[] enemies;
     public Action<string> currentAction;
@@ -70,6 +77,36 @@ public class PlayerUIManager : PlayerBoardStateMachine, IOnEventCallback
         endTurnButton.interactable = state;
     }
 
+    public void CreateSkillDisplay(Skill skill) {
+        GameObject temp = Instantiate(skillInfoPrefab, Vector3.zero, Quaternion.identity, skillScreenContent.transform);
+        temp.gameObject.name = skill.skillName;
+        
+        string skillType;
+        if (skill is ActiveSkill) {
+            ActiveSkill active = (ActiveSkill) skill;
+            skillType = "Active";
+            temp.transform.Find("Info/SpellCD").GetComponent<TMP_Text>().text = "CD: " + active.CD.ToString();
+            temp.transform.Find("Info/SpellWT").GetComponent<TMP_Text>().text = "WT: " + active.WT.ToString();
+            
+            Button useButton = temp.GetComponentInChildren<Button>();
+            useButton.gameObject.SetActive(true);
+            useButton.onClick.AddListener(OnSkillChosen);
+
+        } else {
+            skillType = "Passive";
+            temp.transform.Find("Info/SpellCD").GetComponent<TMP_Text>().text = "";
+            temp.transform.Find("Info/SpellWT").GetComponent<TMP_Text>().text = "";
+            temp.GetComponentInChildren<Button>().gameObject.SetActive(false);
+        }
+
+        temp.transform.Find("Icon").GetComponent<Image>().sprite = skill.skillIcon;
+        temp.transform.Find("Info/SpellName").GetComponent<TMP_Text>().text = skill.skillName;
+        temp.transform.Find("Info/SpellDesc").GetComponent<TMP_Text>().text = String.Format("[{0}][{1}]\n{2}", skill.skillRank.ToString(), skillType, skill.skillDesc);
+
+        this.skillList.Add(temp);
+        this.skillSOList.Add(skill);
+    }
+
     public void OnMove() {
         EndTurnState(false);
         currentState.OnMove();
@@ -84,14 +121,26 @@ public class PlayerUIManager : PlayerBoardStateMachine, IOnEventCallback
         ShowTargets(false);
     }
 
+    public void OnSkill() {
+        skillScreen.SetActive(true);
+    }
+    
+    public void OnSkillChosen() {
+        string chosenName = EventSystem.current.currentSelectedGameObject.transform.parent.name;
+        Skill chosenSkill = skillSOList.Find(skill => skill.skillName.Equals(chosenName));
+        currentAction = target => battleState.OnSkillChosen(target, chosenSkill);
+        skillScreen.SetActive(false);
+        ShowTargets(false);
+    }
+
     public void ShowTargets(bool showAllies) {
-        foreach (Transform child in targetScreen.transform) {
+        foreach (Transform child in targetScreenContent.transform) {
             GameObject.Destroy(child.gameObject);
         }
         
         if (showAllies) {
             foreach (string playerName in allies) {
-                GameObject temp = Instantiate(targetButtonPrefab, Vector3.zero, Quaternion.identity, targetScreen.transform);
+                GameObject temp = Instantiate(targetButtonPrefab, Vector3.zero, Quaternion.identity, targetScreenContent.transform);
                 temp.name = playerName;
                 temp.GetComponentInChildren<TMP_Text>().text = playerName;
                 temp.GetComponent<Button>().onClick.AddListener(OnTargetSelect);
@@ -99,7 +148,7 @@ public class PlayerUIManager : PlayerBoardStateMachine, IOnEventCallback
         }
 
         foreach (string enemyName in enemies) {
-            GameObject temp = Instantiate(targetButtonPrefab, Vector3.zero, Quaternion.identity, targetScreen.transform);
+            GameObject temp = Instantiate(targetButtonPrefab, Vector3.zero, Quaternion.identity, targetScreenContent.transform);
             temp.name = enemyName;
             temp.GetComponentInChildren<TMP_Text>().text = enemyName;
             temp.GetComponent<Button>().onClick.AddListener(OnTargetSelect);
@@ -112,6 +161,14 @@ public class PlayerUIManager : PlayerBoardStateMachine, IOnEventCallback
         string currentTarget = EventSystem.current.currentSelectedGameObject.name;
         currentAction.Invoke(currentTarget);
         targetScreen.SetActive(false);
+    }
+
+    public void CloseTargetScreen() {
+        targetScreen.SetActive(false);
+    }
+
+    public void CloseSkillScreen() {
+        skillScreen.SetActive(false);
     }
 
     public void OnEvent(EventData photonEvent) { 

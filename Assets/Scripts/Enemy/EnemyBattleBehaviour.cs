@@ -63,11 +63,19 @@ public abstract class EnemyBattleBehaviour : MonoBehaviour
             case BattleCodes.ATTACK:
                 ReceiveAttack(actionInfo, sender);
                 break;
+            case BattleCodes.SKILL:
+                ReceiveSkill(actionInfo, sender);
+                break;
         }
     }
 
     public void ReceiveAttack(Dictionary<BattleCodes, object> actionInfo, string sender) {
-        int receivedDamage = StatFunction.EnemyDamageToHP((int) actionInfo[BattleCodes.DAMAGE_NUMBER], physicalDefence, shield > 0);
+        int receivedDamage;
+        if ((BattleCodes) actionInfo[BattleCodes.DAMAGE_TYPE] == BattleCodes.DAMAGE_PHYSICAL) {
+            receivedDamage = StatFunction.EnemyDamageToHP((int) actionInfo[BattleCodes.DAMAGE_NUMBER], physicalDefence, shield > 0);
+        } else {
+            receivedDamage = StatFunction.EnemyDamageToHP((int) actionInfo[BattleCodes.DAMAGE_NUMBER], magicalDefence, shield > 0);
+        }
         StartCoroutine(PlayImpactAnimation(receivedDamage));
         health -= receivedDamage;
 
@@ -85,6 +93,13 @@ public abstract class EnemyBattleBehaviour : MonoBehaviour
             (int) actionInfo[BattleCodes.DAMAGE_NUMBER],
             receivedDamage,
             health));
+    }
+
+    public void ReceiveSkill(Dictionary<BattleCodes, object> actionInfo, string sender) {
+        string path = string.Format("Skills/{0}", (string) actionInfo[BattleCodes.SKILL_NAME]);
+        Skill skill = (Skill) Resources.Load(path);
+        skill.ReceiverAction(this.gameObject);
+        ReceiveAttack(actionInfo, sender);
     }
 
     public IEnumerator PlayImpactAnimation(int damage) {

@@ -32,6 +32,50 @@ public class PlayerBattle : MonoBehaviourPunCallbacks, IOnEventCallback
         SendAction(actionInfo);
     }
 
+    public void Skill(string targetName, Skill skill) {
+        Dictionary<BattleCodes, object> actionInfo = new Dictionary<BattleCodes, object> {
+            { BattleCodes.ACTION_TYPE, BattleCodes.SKILL },
+            { BattleCodes.SKILL_NAME, skill.skillName },
+            { BattleCodes.TARGET_NAME, targetName }
+        };
+        
+        ActiveSkill active = (ActiveSkill) skill;
+        foreach (KeyValuePair<BattleCodes, object> kvp in active.GetSkillCode()) {
+            actionInfo.Add(kvp.Key, kvp.Value);
+        }
+
+        if ((BattleCodes) actionInfo[BattleCodes.DAMAGE_TYPE] != BattleCodes.NONE) {{
+            if ((BattleCodes) actionInfo[BattleCodes.DAMAGE_TYPE] == BattleCodes.DAMAGE_PHYSICAL) {
+                actionInfo.Add(BattleCodes.DAMAGE_NUMBER, damageCalculator(skill, StatFunction.StrengthToPhysical(playerStatus.strength)));
+            } else {
+                actionInfo.Add(BattleCodes.DAMAGE_NUMBER, damageCalculator(skill, StatFunction.IntelligenceToMagic(playerStatus.intelligence)));
+            }
+        }}
+
+        SendAction(actionInfo);
+    }
+
+    public int damageCalculator(Skill skill, int damage) {
+        ActiveSkill active = (ActiveSkill) skill;
+        switch (active.damageAmount) {
+            case DamageAmount.Light:
+                break;
+            case DamageAmount.Medium:
+                damage *= 150 / 100;
+                break;
+            case DamageAmount.Heavy:
+                damage *= 2;
+                break;
+            case DamageAmount.Severe:
+                damage *= 250 / 100;
+                break;
+            case DamageAmount.Colossal:
+                damage *= 3;
+                break;
+        }
+        return damage;
+    }
+
     public void OnEvent(EventData photonEvent) {
         if (photonEvent.Code < 200) {
             GameEventCodes eventCode = (GameEventCodes) photonEvent.Code;

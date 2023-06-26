@@ -12,3 +12,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e5d3165ac536a7b42acf58a26235b917, type: 3}
   m_Name: Bishop
   m_EditorClassIdentifier: 
+  skillList:
+  - {fileID: 11400000, guid: 61db482f2dc7eac4b908ea9c02edfab6, type: 2}

@@ -77,6 +77,17 @@ public static class StatFunction
         ));
     }
 
+    public static int IntelligenceToMagic(int intel) {
+        return (int) Math.Ceiling(polynomial(
+            intel,
+            -0.01f,
+            -1.4977f,
+            1.164f,
+            -0.0399f,
+            0.0004f
+        ));
+    }
+
     // Incoming Calculations
     public static int PhysicalToHP(int attack, int vitality, int strength) {
         int vitalityReduction = (int) Math.Ceiling(polynomial(

@@ -16,7 +16,7 @@ public class EnemyUnit : Unit {
         enemy.GetComponent<EnemyBattleBehaviour>().OnAction();
     }
 
-    public override void SenderVisualAction(Dictionary<BattleCodes, object> actionInfo)
+    public override void SenderAction(Dictionary<BattleCodes, object> actionInfo)
     {
         battleManager.unitList[enemy.name].SetPriority((float) actionInfo[BattleCodes.WAIT_TIME]);
     }
