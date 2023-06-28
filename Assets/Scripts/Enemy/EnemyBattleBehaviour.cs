@@ -34,6 +34,7 @@ public abstract class EnemyBattleBehaviour : MonoBehaviour
     [SerializeField] ParticleSystem shieldHitEffect;
     [SerializeField] ParticleSystem shieldBreakEffect;
     [SerializeField] ParticleSystem shieldRecoverEffect;
+    [SerializeField] GameObject damageNumber;
 
     public virtual void Awake() {
         battleManager = FindObjectOfType<BattleManager>();
@@ -87,19 +88,18 @@ public abstract class EnemyBattleBehaviour : MonoBehaviour
         if ((BattleCodes) actionInfo[BattleCodes.DAMAGE_TYPE] == weakness && shield > 0) {
             StartCoroutine(BreakShield((int) actionInfo[BattleCodes.HIT_COUNT]));
         }
-
-        Debug.Log(String.Format("{0} received {1} raw damage, which took {2} HP. Current HP: {3}.",
-            this.gameObject.name,
-            (int) actionInfo[BattleCodes.DAMAGE_NUMBER],
-            receivedDamage,
-            health));
     }
 
     public void ReceiveSkill(Dictionary<BattleCodes, object> actionInfo, string sender) {
         string path = string.Format("Skills/{0}", (string) actionInfo[BattleCodes.SKILL_NAME]);
         Skill skill = (Skill) Resources.Load(path);
-        skill.ReceiverAction(this.gameObject);
+        StartCoroutine(useSkillCoroutine(skill));
         ReceiveAttack(actionInfo, sender);
+    }
+
+    private IEnumerator useSkillCoroutine(Skill skill) {
+        skill.ReceiverAction(this.gameObject);
+        yield return new WaitForEndOfFrame();
     }
 
     public IEnumerator PlayImpactAnimation(int damage) {
@@ -108,6 +108,9 @@ public abstract class EnemyBattleBehaviour : MonoBehaviour
         var emission = impact.emission;
         emission.rateOverTime = Math.Clamp(damage, 150, 1000);
         impact.Play(true);
+
+        GameObject number = Instantiate(damageNumber, this.transform, false);
+        number.GetComponentInChildren<TMP_Text>().text = damage.ToString();
     }
 
     public IEnumerator BreakShield(int count) {
@@ -132,7 +135,7 @@ public abstract class EnemyBattleBehaviour : MonoBehaviour
 
     public IEnumerator OnDeath() {
         battleManager.setDead(this.gameObject.name, gold, xp);
-        Destroy(this.gameObject);
+        Destroy(this.gameObject, 1f);
         yield return new WaitForEndOfFrame();
     }
 

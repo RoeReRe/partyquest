@@ -5,13 +5,14 @@ using UnityEngine;
 public abstract class ActiveSkill : Skill
 {
     [Header("Active Properties")]
+    public int MP;
     public int WT;
-    public int CD;
     public int castTime;
     public bool returnToPos;
     public BattleCodes damageType = BattleCodes.NONE;
     public DamageAmount damageAmount = DamageAmount.NONE;
-    public int hitCount { get; } = 0;
+    public float bonusDamageMultiplier = 1f;
+    public int hitCount = 0;
     public virtual bool useCondition() { return true; }
 
     public Dictionary<BattleCodes, object> GetSkillCode() {

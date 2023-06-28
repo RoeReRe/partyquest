@@ -9,9 +9,11 @@ using System;
 public class PlayerBattle : MonoBehaviourPunCallbacks, IOnEventCallback
 {
     private PlayerStatus playerStatus;
+    private PlayerUIManager playerUIManager;
     
     private void Awake() {
         playerStatus = GetComponent<PlayerStatus>();
+        playerUIManager = GetComponent<PlayerUIManager>();
     } 
 
     public void Attack(string targetName) {
@@ -52,11 +54,16 @@ public class PlayerBattle : MonoBehaviourPunCallbacks, IOnEventCallback
             }
         }}
 
+        List<Tuple<string, int>> changeList = new List<Tuple<string, int>> { new Tuple<string, int>("mana", -active.MP) };
+        StartCoroutine(playerStatus.changeStatus(changeList, 0f));
+        StartCoroutine(playerUIManager.SetCooldown(skill, (float) actionInfo[BattleCodes.COOL_DOWN]));
+
         SendAction(actionInfo);
     }
 
     public int damageCalculator(Skill skill, int damage) {
         ActiveSkill active = (ActiveSkill) skill;
+        damage = (int) Math.Round(damage * active.bonusDamageMultiplier);
         switch (active.damageAmount) {
             case DamageAmount.Light:
                 break;

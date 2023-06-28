@@ -508,6 +508,7 @@ MonoBehaviour:
   shieldHitEffect: {fileID: 8292499379240111414, guid: 0ac317fb0ded7ad4295ac858ea35ab69, type: 3}
   shieldBreakEffect: {fileID: 1424319757735082372, guid: 977bd7f4cc788d644bc5049c05b51d23, type: 3}
   shieldRecoverEffect: {fileID: 6063292985590106244, guid: 0ed9875aa2a18834c95a727f0cde87a5, type: 3}
+  damageNumber: {fileID: 8721317334936436490, guid: 5148f44acc750a04c8eda6ba621ea27b, type: 3}
 --- !u!1 &8817053764093320499
 GameObject:
   m_ObjectHideFlags: 0

@@ -308,6 +308,8 @@ public enum BattleCodes : byte {
 
     SKILL_NAME,
     CAST_TIME,
+
+    EFFECT_WAIT_TIME,
 }
 
 public abstract class Unit {

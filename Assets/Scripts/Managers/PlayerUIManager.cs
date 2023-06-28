@@ -24,8 +24,10 @@ public class PlayerUIManager : PlayerBoardStateMachine, IOnEventCallback
     public GameObject targetScreenContent;
     public GameObject targetButtonPrefab;
     public GameObject skillInfoPrefab;
+    public GameObject cooldownPrefab;
     public GameObject skillScreen;
     public GameObject skillScreenContent;
+    public GameObject skillDetailScreen;
     public List<GameObject> skillList = new List<GameObject>();
     public List<Skill> skillSOList = new List<Skill>();
 
@@ -36,6 +38,8 @@ public class PlayerUIManager : PlayerBoardStateMachine, IOnEventCallback
     private void Start() {
         BoardUIState(false);
         BattleUIState(false);
+        skillScreen.SetActive(true);
+        CloseSkillScreen();
         loadingScreen.SetActive(true);
 
         PhotonNetwork.AutomaticallySyncScene = false;
@@ -77,31 +81,38 @@ public class PlayerUIManager : PlayerBoardStateMachine, IOnEventCallback
         endTurnButton.interactable = state;
     }
 
+    public void ShowSkillScreen() {
+        skillScreen.transform.localScale = Vector3.one;
+    }
+
+    public void CloseSkillScreen() {
+        skillScreen.transform.localScale = Vector3.zero;
+    }
+
     public void CreateSkillDisplay(Skill skill) {
         GameObject temp = Instantiate(skillInfoPrefab, Vector3.zero, Quaternion.identity, skillScreenContent.transform);
         temp.gameObject.name = skill.skillName;
+        temp.transform.Find("Info/SpellName").GetComponent<TMP_Text>().text = skill.skillName;
         
-        string skillType;
+        Button useButton = temp.transform.Find("Icon").GetComponent<Button>();
+        useButton.gameObject.GetComponent<Image>().sprite = skill.skillIcon;
+
+        Button detailButton = temp.transform.Find("Info/Details").GetComponent<Button>();
+        detailButton.onClick.AddListener(OnSkillDetails);
+        
         if (skill is ActiveSkill) {
             ActiveSkill active = (ActiveSkill) skill;
-            skillType = "Active";
-            temp.transform.Find("Info/SpellCD").GetComponent<TMP_Text>().text = "CD: " + active.CD.ToString();
-            temp.transform.Find("Info/SpellWT").GetComponent<TMP_Text>().text = "WT: " + active.WT.ToString();
-            
-            Button useButton = temp.GetComponentInChildren<Button>();
-            useButton.gameObject.SetActive(true);
+            temp.transform.Find("Info/SkillNumbers/SpellMP").GetComponent<TMP_Text>().text = "MP: " + active.MP.ToString();
+            temp.transform.Find("Info/SkillNumbers/SpellCD").GetComponent<TMP_Text>().text = "CD: " + active.CD.ToString();
+            temp.transform.Find("Info/SkillNumbers/SpellWT").GetComponent<TMP_Text>().text = "WT: " + active.WT.ToString();
             useButton.onClick.AddListener(OnSkillChosen);
 
         } else {
-            skillType = "Passive";
-            temp.transform.Find("Info/SpellCD").GetComponent<TMP_Text>().text = "";
-            temp.transform.Find("Info/SpellWT").GetComponent<TMP_Text>().text = "";
-            temp.GetComponentInChildren<Button>().gameObject.SetActive(false);
+            temp.transform.Find("Info/SkillNumbers/SpellMP").GetComponent<TMP_Text>().text = "";
+            temp.transform.Find("Info/SkillNumbers/SpellCD").GetComponent<TMP_Text>().text = "";
+            temp.transform.Find("Info/SkillNumbers/SpellWT").GetComponent<TMP_Text>().text = "";
+            Destroy(useButton);
         }
-
-        temp.transform.Find("Icon").GetComponent<Image>().sprite = skill.skillIcon;
-        temp.transform.Find("Info/SpellName").GetComponent<TMP_Text>().text = skill.skillName;
-        temp.transform.Find("Info/SpellDesc").GetComponent<TMP_Text>().text = String.Format("[{0}][{1}]\n{2}", skill.skillRank.ToString(), skillType, skill.skillDesc);
 
         this.skillList.Add(temp);
         this.skillSOList.Add(skill);
@@ -122,15 +133,59 @@ public class PlayerUIManager : PlayerBoardStateMachine, IOnEventCallback
     }
 
     public void OnSkill() {
-        skillScreen.SetActive(true);
+
+        foreach (GameObject skillDisplay in skillList) {
+            Skill skill = skillSOList.Find(x => x.skillName.Equals(skillDisplay.name));
+            if (skill is ActiveSkill) {
+                ActiveSkill active = (ActiveSkill) skill;
+                Button useButton = skillDisplay.transform.Find("Icon").GetComponentInChildren<Button>();
+                if (active.MP > playerStatus.mana || !active.useCondition()) {
+                    useButton.interactable = false;
+                } else {
+                    useButton.interactable = true;
+                }
+            }
+        }
+
+        ShowSkillScreen();
+    }
+
+    public void OnSkillDetails() {
+        string chosenName = EventSystem.current.currentSelectedGameObject.transform.parent.parent.name;
+        Skill chosenSkill = skillSOList.Find(skill => skill.skillName.Equals(chosenName));
+        skillDetailScreen.SetActive(true);
+
+        string skillType;
+        if (chosenSkill is ActiveSkill) {
+            ActiveSkill active = (ActiveSkill) chosenSkill;
+            skillType = "Active";
+            skillDetailScreen.transform.Find("SkillDetail/Info/SkillNumbers/SpellMP").GetComponent<TMP_Text>().text = "MP: " + active.MP.ToString();
+            skillDetailScreen.transform.Find("SkillDetail/Info/SkillNumbers/SpellCD").GetComponent<TMP_Text>().text = "CD: " + active.CD.ToString();
+            skillDetailScreen.transform.Find("SkillDetail/Info/SkillNumbers/SpellWT").GetComponent<TMP_Text>().text = "WT: " + active.WT.ToString();
+        } else {
+            skillType = "Passive";
+            skillDetailScreen.transform.Find("SkillDetail/Info/SkillNumbers/SpellMP").GetComponent<TMP_Text>().text = "";
+            skillDetailScreen.transform.Find("SkillDetail/Info/SkillNumbers/SpellCD").GetComponent<TMP_Text>().text = "";
+            skillDetailScreen.transform.Find("SkillDetail/Info/SkillNumbers/SpellWT").GetComponent<TMP_Text>().text = "";
+        }
+
+        skillDetailScreen.transform.Find("SkillDetail/Icon").GetComponent<Image>().sprite = chosenSkill.skillIcon;
+        skillDetailScreen.transform.Find("SkillDetail/Info/SpellName").GetComponent<TMP_Text>().text = chosenSkill.skillName;
+        skillDetailScreen.transform.Find("SkillDetail/Info/SpellDesc").GetComponent<TMP_Text>().text = String.Format("[{0}][{1}]\n{2}", chosenSkill.skillRank.ToString(), skillType, chosenSkill.skillDesc);
     }
     
     public void OnSkillChosen() {
         string chosenName = EventSystem.current.currentSelectedGameObject.transform.parent.name;
         Skill chosenSkill = skillSOList.Find(skill => skill.skillName.Equals(chosenName));
         currentAction = target => battleState.OnSkillChosen(target, chosenSkill);
-        skillScreen.SetActive(false);
+        CloseSkillScreen();
         ShowTargets(false);
+    }
+
+    public IEnumerator SetCooldown(Skill skill, float cd) {
+        GameObject skillDisplay = skillList.Find(display => display.name.Equals(skill.skillName));
+        Instantiate(cooldownPrefab, skillDisplay.transform, false).GetComponent<CooldownBehaviour>().Init(cd);
+        yield return new WaitForEndOfFrame();
     }
 
     public void ShowTargets(bool showAllies) {
@@ -167,8 +222,8 @@ public class PlayerUIManager : PlayerBoardStateMachine, IOnEventCallback
         targetScreen.SetActive(false);
     }
 
-    public void CloseSkillScreen() {
-        skillScreen.SetActive(false);
+    public void CloseSkillDetailScreen() {
+        skillDetailScreen.SetActive(false);
     }
 
     public void OnEvent(EventData photonEvent) { 

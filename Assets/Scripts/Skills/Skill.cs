@@ -7,6 +7,7 @@ public abstract class Skill : ScriptableObject
     public string skillName;
     public SkillRank skillRank;
     public Sprite skillIcon;
+    public int CD;
 
     [TextArea(5, 10)]
     public string skillDesc;
@@ -16,7 +17,7 @@ public abstract class Skill : ScriptableObject
     public VisualEffect senderVFX;
     public ParticleSystem receiverPS;
     public VisualEffect receiverVFX;
-
+    
     public abstract void SenderAction(GameObject sender);
     public abstract void ReceiverAction(GameObject receiver);
 }

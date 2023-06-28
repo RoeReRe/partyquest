@@ -1,0 +1,129 @@
+Samurai (Warrior; Tank / Stance technique system)
+
+Owl (Thief/ Card system, steal swipe DoT stealth)
+
+Pathfinder (Archer / Curse)
+
+Bishop (Mage / Support oracle)
+
+
+[Common][Active] Energy Bolt
+Fire a small orb of mana towards a target, dealing light magic damage.
+
+[Common][Active] Magic Arrow
+Shoot an arrow composed of mana towards a target, dealing light magic damage. Target is knockbacked slightly.
+
+[Common][Active] Mana Shield
+Temporarily create a shield for 30 seconds that absorbs 70% of incoming damage in exchange for MP. If MP reaches 0, the HP takes a full hit.
+Every point of HP is exchanged for 0.2MP.
+
+[Common][Active] Shallow Blessing
+Temporarily provide a 10% boost to a target's stats for 60 seconds.
+
+[Common][Active] Shallow Heal
+Slightly heal a target.
+
+[Common][Passive] Arcane Recovery
+Provide slight mana regeneration per turn during battle.
+
+[Common][Passive] Wisdom
+Permanently increase intelligence by 5.
+
+
+[Unique][Active] Astral Disruption
+Charge for 5 seconds. When released, deals medium magic damage. Target is knockbacked slightly.
+
+[Unique][Active] Astral Blast
+Fire a blast of mana towards a target, dealing medium magic damage. 50% chance of slowing target.
+
+[Unique][Active] Purifying Heal
+Deal medium magic damage to the target before healing them for 1.5x the initial damage dealt over 20 seconds.
+
+[Unique][Active] Baptism
+Cleanses a target completely of all status effects.
+
+[Unique][Active] Agile Magic
+Only usable on self. Decreases WT by 30% and increases intelligence by 5 for 45 seconds.
+
+[Unique][Passive] Magic Resistance
+Reduces incoming magic damage by 20%.
+
+[Unique][Passive] Arcane Diffusion
+Every skill usage has a 30% chance of recovering 50% of your MP cost.
+
+[Unique][Passive] High Wisdom
+Permanently increase intelligence by 10.
+
+
+[Ultimate][Active] Genesis
+Call upon the angels to burn all enemies, dealing heavy magic damage.
+
+[Ultimate][Active] Wrath of God
+Smite all enemies, dealing heavy magic damage with a 50% chance of inflicting burn.
+
+[Ultimate][Active] Meteor
+Rain down a volley of meteors on all enemies, dealing severe magic damage.
+
+[Ultimate][Active] Holy Ray
+Attack a target with a holy sword, dealing severe damage. The damage counts as both magic and physical damage.
+
+[Ultimate][Active] Guidance of the Church
+Charge for 10 seconds. When released, deals heavy magic damage to all enemies while healing all allies moderately.
+
+[Ultimate][Active] Laying on of Hands
+Temporarily provide a 20% boost to all defensive stats for 60 seconds.
+
+[Ultimate][Active] Divine Blessing
+Temporarily provide a 20% boost to all offensive stats for 60 seconds.
+
+[Ultimate][Active] Evangelism
+Spread the word of God. Reduces WT and CD for all skills by 30%.
+
+[Ultimate][Active] Infinity
+Temporarily remove the MP cost of all skills for 30 seconds.
+
+[Ultimate][Active] Fictitious Promise
+Temporarily alter an ally's fate, delaying all heal and damage received by 25 seconds. All heal received during this period is amplified.
+
+[Ultimate][Active] Resurrection
+Resurrect a dead ally. The resurrected target recovers with 50% HP and MP.
+
+[Ultimate][Active] Fountain of Youth
+Rain down holy water on all allies, providing a random set of effects.
+
+[Ultimate][Passive] Buff Mastery
+Increases the duration of all buffs by 1.5x. Permanently increases intelligence and mind by 5.
+
+[Ultimate][Passive] Arcane Precision
+Every damaging skill has a 30% chance of ignoring enemy defense.
+
+[Ultimate][Passive] Astral Abundance
+Permanently increase mind by 15.
+
+[Ultimate][Passive] Mental Fortitude
+Permanently increase endurance by 10.
+
+[Ultimate][Passive] Angelic Aura
+Every skill usage has a 30% chance of providing a stat boost to a random ally.
+
+[Ultimate][Passive] Arcane Mastery
+Provide moderate mana regeneration per turn in battle.
+
+
+[Divine][Active] Indignation
+Charge for 30 seconds. When released, deal colossal magic damage to all enemies.
+
+[Divine][Active] Kyrie Eleison
+Charge for 30 seconds. Any damage received during charging will cause this skill to fail. When released, deals magic damage equivalent to 50% of the target's current HP.
+
+[Divine][Active] Phoebus Apollo
+Fully resurrect and recover the HP and MP of all allies. Also dispel all debuffs.
+
+Runeblader (Warrior / Rune system)
+
+Alchemist?? (Wildcard / Synthesis system)
+
+-----
+Ranks : Common / Unique / Ultimate / Divine
+Amt: Light / Medium / Heavy / Severe / Colossal
+-----

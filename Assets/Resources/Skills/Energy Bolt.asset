@@ -20,9 +20,12 @@ MonoBehaviour:
   senderVFX: {fileID: 0}
   receiverPS: {fileID: 4033287822461114141, guid: d913e866795543e44a9c9fb0842bba4f, type: 3}
   receiverVFX: {fileID: 0}
+  MP: 5
   WT: 7
   CD: 12
   castTime: 1
   returnToPos: 1
   damageType: 9
   damageAmount: 1
+  bonusDamageMultiplier: 1.1
+  hitCount: 1

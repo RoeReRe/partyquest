@@ -91,8 +91,14 @@ public class PlayerMovement : MonoBehaviour
             animatorObject.SetInteger("attackType", 3);
         }
         animatorObject.SetTrigger("isAttacking");
-        skill.SenderAction(this.gameObject);
+        
+        StartCoroutine(skillCoroutine(skill));
 
         yield return new WaitForSecondsRealtime((float) actionInfo[BattleCodes.CAST_TIME]);
+    }
+
+    private IEnumerator skillCoroutine(Skill skill) {
+        skill.SenderAction(this.gameObject);
+        yield return new WaitForEndOfFrame();
     }
 }
